@@ -1,0 +1,148 @@
+name: VoltFlow CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── 1. Backend unit tests ────────────────────────────────────────────────────
+  backend-test:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm test
+        env:
+          DATABASE_URL: postgresql://voltflow:voltflow_password@localhost:5433/voltflow
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: ci-test-secret-at-least-32-chars-long
+          NODE_ENV: test
+
+  # ── 2. Dashboard build ───────────────────────────────────────────────────────
+  build-web:
+    name: Dashboard Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/dashboard-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/dashboard-web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        run: npm run build
+        env:
+          VITE_API_URL: https://api.voltflow.io
+
+  # ── 3. Charger simulator unit tests ─────────────────────────────────────────
+  simulator-test:
+    name: Charger Simulator Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/charger-simulator
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests (E2E skipped — no backend in CI)
+        run: npm test
+        # E2E tests are guarded by VOLTFLOW_E2E=true — not set here
+
+  # ── 4. E2E tests (manual trigger or nightly) ─────────────────────────────────
+  e2e:
+    name: E2E Tests (Full Stack)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    services:
+      postgres:
+        image: timescale/timescaledb:latest-pg16
+        env:
+          POSTGRES_USER: voltflow
+          POSTGRES_PASSWORD: voltflow_password
+          POSTGRES_DB: voltflow
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: apps/backend
+
+      - name: Run Prisma migrations
+        run: npx prisma migrate deploy
+        working-directory: packages/database
+        env:
+          DATABASE_URL: postgresql://voltflow:voltflow_password@localhost:5433/voltflow
+
+      - name: Start backend in background
+        run: npm run start &
+        working-directory: apps/backend
+        env:
+          DATABASE_URL: postgresql://voltflow:voltflow_password@localhost:5433/voltflow
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: ci-e2e-secret-at-least-32-chars-long
+          PORT: 3000
+          NODE_ENV: test
+
+      - name: Wait for backend to be ready
+        run: |
+          for i in {1..20}; do
+            curl -sf http://localhost:3000/api/health && break || sleep 2
+          done
+
+      - name: Install charger-simulator dependencies
+        run: npm ci
+        working-directory: packages/charger-simulator
+
+      - name: Run E2E tests
+        run: npm run e2e
+        working-directory: packages/charger-simulator
+        env:
+          VOLTFLOW_E2E: 'true'
+          VOLTFLOW_BACKEND_WS: ws://localhost:3000

@@ -1,58 +1,85 @@
-# VoltFlow MVP — Walkthrough
+# VoltFlow — All 4 Remaining Tasks Complete
 
-## What Was Built (Phases 1-10)
+## Task 1 — Stale [implementation_plan.md](file:///c:/projects/voltflow/implementation_plan.md) ✅
 
-- **Backend REST API**: Full layered architecture (`Routes → Controllers → Services → Repositories`).
-- **Dashboard Web**: Built with React + Vite + Tailwind CSS. [useStations](file:///C:/Users/user/.gemini/antigravity/scratch/voltflow/apps/dashboard-web/src/hooks/useStations.ts#6-28) and [useRealtimeEvents](file:///C:/Users/user/.gemini/antigravity/scratch/voltflow/apps/dashboard-web/src/hooks/useRealtimeEvents.ts#42-95) hooks implemented.
-- **Driver Mobile App**: 3 screens implemented in Expo (Home, ChargerDetail, Payment).
-- **JWT Auth Middleware**: `@fastify/jwt` plugin with typed payload, `authenticate`, and `requireRole` guards.
-- **Sessions & Revenue Pages**: Data visualization using Recharts.
+[implementation_plan.md](file:///c:/projects/voltflow/implementation_plan.md) replaced with a clean English MVP status summary — architecture diagram, all 12 phases, and local setup commands.
 
-![Stations Map with Leaflet](file:///C:/Users/user/.gemini/antigravity/brain/42a663cc-8156-442e-b97c-6b42536781a2/stations_map_page_1773160314526.png)
-![Sessions Page](file:///C:/Users/user/.gemini/antigravity/brain/42a663cc-8156-442e-b97c-6b42536781a2/sessions_page_charts_1773162179291.png)
+---
 
-## What Was Added This Session (Phase 11 MVP Polish)
+## Task 2 — Real E2E Tests ✅
 
-We successfully completed all 10 remaining critical, important, and desirable items to make the VoltFlow MVP feature-complete and production-ready:
+[e2e.test.ts](file:///c:/projects/voltflow/packages/charger-simulator/src/__tests__/e2e.test.ts) replaced the `expect(true).toBe(true)` placeholder with a full **OCPP 1.6 lifecycle simulation**:
 
-### 🔴 Critical Infrastructure
-1. **Prisma Migrations & Isolated DB**: Replaced the local DB with a fully isolated PostgreSQL 16 container running `timescale/timescaledb`. Prisma migrations are clean and automated.
-2. **Charger Registry & Remote Commands**: Designed the in-memory `ChargerRegistry` to store WebSocket connections and wire `RemoteStartTransaction` / `RemoteStopTransaction` right back to the physical hardware when API calls are made.
-3. **Real DB Persistence for OCPP**: Incoming `StatusNotification` and `MeterValues` from the WebSockets are now actively translated and saved to PostgreSQL via Repositories, ensuring consistency across the dashboard.
+| Test | Action |
+|---|---|
+| 1 | `BootNotification` → asserts `Accepted` |
+| 2 | `StatusNotification(Available)` → asserts `{}` |
+| 3 | `Heartbeat` → asserts `currentTime` present |
+| 4 | `StartTransaction` → asserts numeric `transactionId` |
+| 5 | `StatusNotification(Charging)` → asserts `{}` |
+| 6 | `MeterValues` ×2 → asserts acknowledged |
+| 7 | `StopTransaction` → asserts `Accepted` |
+| 8 | `StatusNotification(Available)` → asserts `{}` |
 
-### 🟡 Features & Security
-4. **Basic Auth for Chargers**: Configured the OCPP endpoints to extract `Authorization: Basic` headers, validating them against the hashed `ocppPassword` in the database.
-5. **Payment Split Service**: Wired the [SessionService](file:///C:/Users/user/.gemini/antigravity/scratch/voltflow/apps/backend/src/services/SessionService.ts#22-91) to a new [PaymentService](file:///C:/Users/user/.gemini/antigravity/scratch/voltflow/apps/backend/src/services/PaymentService.ts#6-48) adapter configured to stub payouts/splits to Stripe Connect / Efi Marketplace.
-6. **Real-Time Dashboard Integration**: Wired [useRealtimeEvents](file:///C:/Users/user/.gemini/antigravity/scratch/voltflow/apps/dashboard-web/src/hooks/useRealtimeEvents.ts#42-95) directly into [OverviewPage](file:///C:/Users/user/.gemini/antigravity/scratch/voltflow/apps/dashboard-web/src/pages/OverviewPage.tsx#20-123) and [StationsPage](file:///C:/Users/user/.gemini/antigravity/scratch/voltflow/apps/dashboard-web/src/pages/StationsPage.tsx#83-153). Live Map Markers and Charger Cards now instantly update their status without polling.
+**Guarded by `VOLTFLOW_E2E=true`** — skipped in standard CI, enabled in the full-stack E2E job.
+Also includes 2 always-running unit smoke tests (no backend required).
 
-### 🟢 Production Readiness
-7. **Operational Settings Page**: Created a full React UI for Site Hosts to manage their Organization Name, configure the Split Rate natively via slider, manage team members, and oversee hardware passwords.
-8. **TimescaleDB Optimization**: Converted the [MeterValue](file:///C:/Users/user/.gemini/antigravity/scratch/voltflow/apps/backend/src/repositories/MeterValueRepository.ts#5-24) table into a native TimescaleDB Hypertable through automated raw SQL Prisma migrations, unlocking infinite scalability for high-frequency IoT queries.
-9. **TLS/WSS Ready**: Configured `unifiedConfig` and the Fastify `server` instance to natively load filesystem Certificates to securely accept `wss://` connections in production environments.
-10. **Test Suites**: Deployed `vitest` across both the Backend and the Charger Simulator logic, implementing the initial Unit and E2E placeholder frameworks.
+```bash
+# Run unit tests only
+npm test
 
-## Project Structure
-```
-voltflow/
-├── apps/
-│   ├── backend/src/
-│   │   ├── config/ (unifiedConfig.ts)
-│   │   ├── controllers/ (Settings, Charge, etc.)
-│   │   ├── services/ (SessionService, PaymentService)
-│   │   ├── repositories/ (ChargePoint, Session, MeterValue)
-│   │   ├── routes/
-│   │   ├── ocpp/ (websocket-manager, ocppAuth, ChargerRegistry)
-│   │   └── server.ts
-│   ├── dashboard-web/src/
-│   │   ├── components/
-│   │   ├── pages/ (Overview, Stations, Settings, etc.)
-│   │   └── services/api.ts
-│   └── driver-mobile/
-├── packages/
-│   ├── database/prisma/ (schema.prisma, migrations/)
-│   ├── ocpp-types/
-│   └── charger-simulator/src/
-└── docker-compose.yml (TimescaleDB + Redis)
+# Run full E2E (requires backend + Redis + DB)
+VOLTFLOW_E2E=true npm run e2e
 ```
 
-**MVP is complete!** 🚀 All architectural foundations are fully operational securely integrating the physical chargers to the realtime Dashboard.
+---
+
+## Task 3 — Mobile App API Polish ✅
+
+### [services/api.ts](file:///c:/projects/voltflow/apps/driver-mobile/services/api.ts)
+- Fully typed with [ApiStation](file:///c:/projects/voltflow/apps/driver-mobile/services/api.ts#15-23), [ApiChargePoint](file:///c:/projects/voltflow/apps/driver-mobile/services/api.ts#6-14), [SessionResponse](file:///c:/projects/voltflow/apps/driver-mobile/services/api.ts#24-31) interfaces
+- Clean error messages: `[status] statusText — body`
+
+### [app/index.tsx](file:///c:/projects/voltflow/apps/driver-mobile/app/index.tsx)
+- **Haversine distance**: calculates real km from driver location (São Paulo centre) to each station — sorted nearest first
+- **Pull-to-refresh**: `RefreshControl` on the charger list
+- **Error screen**: replaces `alert()` crash — shows ⚠️ message with "Tentar novamente" button
+- **Live kWh counter**: polls every 10s during active session, shows real-time estimated cost
+- **FINISHING status**: added to `STATUS_CONFIG`
+- **Search clear button**: ✕ appears when search is active
+
+---
+
+## Task 4 — CI/CD Pipeline ✅
+
+### GitHub Actions — [ci.yml](file:///c:/projects/voltflow/.github/workflows/ci.yml)
+
+4 jobs:
+
+| Job | When | What |
+|---|---|---|
+| `backend-test` | Every push/PR | `npm test` in `apps/backend` |
+| `build-web` | Every push/PR | `npm run build` in `apps/dashboard-web` |
+| `simulator-test` | Every push/PR | Unit tests in `charger-simulator` (E2E skipped) |
+| `e2e` | Push to main / manual | Full stack: TimescaleDB + Redis services → migrate → start backend → run OCPP E2E |
+
+### Production Docker Compose — [docker-compose.prod.yml](file:///c:/projects/voltflow/docker-compose.prod.yml)
+- 4 services: `voltflow-db`, `voltflow-redis`, `voltflow-backend`, `voltflow-web`
+- DB and Redis **not exposed externally** — internal network only
+- Healthchecks with `depends_on: condition: service_healthy`
+- Secrets from environment variables (no hardcoded values)
+
+### Dockerfiles
+- **[apps/backend/Dockerfile](file:///c:/projects/voltflow/apps/backend/Dockerfile)**: Multi-stage — builder compiles TypeScript; production image runs as non-root `voltflow` user
+- **[apps/dashboard-web/Dockerfile](file:///c:/projects/voltflow/apps/dashboard-web/Dockerfile)**: Multi-stage — Vite builds `dist/`; nginx serves with SPA fallback, gzip, and security headers
+
+### Production deployment
+```bash
+cp .env.prod.example .env.prod
+# Fill in POSTGRES_PASSWORD, JWT_SECRET, VITE_API_URL
+
+docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
+
+# Run migrations once
+docker exec voltflow-backend npx prisma migrate deploy
+```

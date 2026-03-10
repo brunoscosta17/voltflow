@@ -7,15 +7,15 @@
 
 ## Phase 2: Backend (Node.js & OCPP)
 - [x] Initialize `apps/backend` (Fastify + TypeScript)
-- [x] Implement Redis Pub/Sub adapter (Stubbed)
+- [x] Implement Redis Pub/Sub adapter
 - [x] Implement OCPP WebSocket Server (Basic Auth, Connection handling)
-- [x] Implement `BootNotification` & `StatusNotification` handlers (Stubbed)
-- [x] Implement `MeterValues` handler (saving to Partitioned Table) (Stubbed)
+- [x] Implement `BootNotification` & `StatusNotification` handlers
+- [x] Implement `MeterValues` handler (saving to TimescaleDB)
 
 ## Phase 3: Charger Simulator
 - [x] Create `packages/charger-simulator` (Node.js script)
 - [x] Connect simulator to Backend via WebSocket
-- [x] Simulate charging session loop (Auth -> Start -> MeterValues -> Stop)
+- [x] Simulate charging session loop (Auth → Start → MeterValues → Stop)
 
 ## Phase 4: Frontend Apps (React)
 - [x] Initialize `apps/dashboard-web` (React + Vite + Tailwind)
@@ -51,28 +51,39 @@
 - [x] Payment screen (Pix QR Code)
 
 ## Phase 9: Real-time OCPP Notifications (WebSocket → Redis → Dashboard)
-- [ ] `redisClient.ts` — IORedis singleton + Pub/Sub helpers
-- [ ] Update `websocket-manager.ts` — publish OCPP events to Redis channels
-- [ ] `eventsRoute.ts` — SSE endpoint (`/api/events`) that subscribes to Redis and streams to clients
-- [ ] `useRealtimeEvents.ts` — React hook consuming the SSE stream
-- [ ] Live charger status updates in OverviewPage + StationsPage
+- [x] `redisClient.ts` — IORedis singleton + Pub/Sub helpers
+- [x] Update `websocket-manager.ts` — publish OCPP events to Redis channels (incl. StartTransaction / StopTransaction)
+- [x] `eventsRoute.ts` — SSE endpoint (`/api/events`) subscribing to Redis and streaming to clients
+- [x] `useRealtimeEvents.ts` — React hook consuming the SSE stream
+- [x] Live charger status updates in OverviewPage + StationsPage
 
 ## Phase 10: Sessions & Revenue Pages with Charts
-- [ ] Install Recharts
-- [ ] `SessionsPage.tsx` — sessions table + area chart (kWh over time)
-- [ ] `RevenuePage.tsx` — revenue bar chart + split breakdown donut
+- [x] Install Recharts
+- [x] `SessionsPage.tsx` — sessions table + area chart (kWh over time) + bar chart + filters
+- [x] `RevenuePage.tsx` — stacked bar + area trend + donut split + per-charger breakdown
 - [x] Mock data with realistic time series
 
-## Phase 11: Backend Persistence & Polish
-- [x] Item 3: Prisma Migrations + Docker Compose
-- [x] Item 1: ChargerRegistry + RemoteStart/StopTransaction
-- [x] Item 2: Real DB Persistence (StatusNotification/MeterValues)
-- [x] Item 4: Basic Auth for OCPP
-- [x] Item 5: Payment Split Service (Stripe/Efi stub)
-- [x] Item 6: useRealtimeEvents in Dashboard
-- [x] Item 7: Settings Page
-- [x] Item 8: TLS/WSS preparation
-- [x] Item 9: TimescaleDB for MeterValues
-- [x] Item 10: Automated End-to-End Tests
+## Phase 11: Internationalization (i18n)
+- [x] Install `react-i18next` + `i18next`
+- [x] `src/i18n/index.ts` — i18next config with localStorage persistence
+- [x] Locale files: `pt.json`, `en.json`, `es.json`
+- [x] `LanguageSwitcher` component (globe icon dropdown, top-right header)
+- [x] All 5 pages translated via `useTranslation`
+- [x] Map legend status labels translated
 
+## Phase 12: Backend Persistence & Polish
+- [x] Prisma Migrations + Docker Compose (`docker-compose.yml`)
+- [x] ChargerRegistry + RemoteStart/StopTransaction
+- [x] Real DB Persistence (StatusNotification / MeterValues → `MeterValueRepository.ts`)
+- [x] Basic Auth for OCPP (`ocppAuth.ts`)
+- [x] Payment Split Service (`PaymentService.ts`)
+- [x] Settings Page (Dashboard + backend routes)
+- [x] TLS/WSS preparation (server.ts + config)
+- [x] TimescaleDB for MeterValues (hypertable migration)
+- [x] Automated E2E Tests (`e2e.test.ts` + `SessionService.test.ts`)
 
+## Remaining / Open Items
+- [ ] **E2E test coverage**: `e2e.test.ts` exists in `charger-simulator/src/__tests__/` but needs to be verified it actually runs against the backend
+- [ ] **`implementation_plan.md` in root is stale** — it still documents Phase 9 as if incomplete; should be replaced with a current status overview
+- [ ] **Driver Mobile App API integration**: `driver_app_plan.md` describes real API integration still pending (currently uses mock data in the mobile app)
+- [ ] **Production deployment**: No CI/CD pipeline or production Docker Compose with secrets management

@@ -1,0 +1,82 @@
+name: voltflow-prod
+
+services:
+  # ── Database (TimescaleDB) ────────────────────────────────────────────────────
+  voltflow-db:
+    image: timescale/timescaledb:latest-pg16
+    container_name: voltflow-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     ${POSTGRES_USER:-voltflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB:       voltflow
+    volumes:
+      - voltflow_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U voltflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # NOT exposed externally — backend accesses via internal network
+
+  # ── Redis ─────────────────────────────────────────────────────────────────────
+  voltflow-redis:
+    image: redis:7-alpine
+    container_name: voltflow-redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - voltflow_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend API + OCPP Server ─────────────────────────────────────────────────
+  voltflow-backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: voltflow-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-voltflow}:${POSTGRES_PASSWORD}@voltflow-db:5432/voltflow
+      REDIS_URL:    redis://voltflow-redis:6379
+      PORT:         3000
+      JWT_SECRET:   ${JWT_SECRET}
+      NODE_ENV:     production
+      TLS_KEY_PATH: ${TLS_KEY_PATH:-}
+      TLS_CERT_PATH: ${TLS_CERT_PATH:-}
+    depends_on:
+      voltflow-db:
+        condition: service_healthy
+      voltflow-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ── Dashboard Web (nginx) ─────────────────────────────────────────────────────
+  voltflow-web:
+    build:
+      context: ./apps/dashboard-web
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-https://api.voltflow.io}
+    container_name: voltflow-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      voltflow-backend:
+        condition: service_healthy
+
+volumes:
+  voltflow_pgdata:
+  voltflow_redis_data:

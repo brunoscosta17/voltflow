@@ -4,12 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "e2e": "VOLTFLOW_E2E=true vitest run --reporter=verbose"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "dependencies": {
+    "ws": "^8.18.1"
+  },
   "devDependencies": {
     "@types/ws": "^8.18.1",
     "@vitest/coverage-v8": "^4.0.18",
@@ -18,3 +22,4 @@
     "vitest": "^4.0.18"
   }
 }
+
