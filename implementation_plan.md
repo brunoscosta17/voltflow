@@ -1,3 +1,59 @@
+# Fase 9 — Notificações em Tempo Real (WebSocket → Redis → Dashboard)
+
+## Estado Atual
+
+**Boa notícia: 95% da Fase 9 já está implementada.** Veja o que existe:
+
+| Arquivo | Estado | O que faz |
+|---|---|---|
+| [redis/redisClient.ts](file:///c:/projects/voltflow/apps/backend/src/redis/redisClient.ts) | ✅ Completo | Publisher + Subscriber + canais `CHARGER_STATUS`, `METER_VALUES`, `SESSIONS` |
+| [ocpp/websocket-manager.ts](file:///c:/projects/voltflow/apps/backend/src/ocpp/websocket-manager.ts) | ✅ Completo | Publica no Redis em Boot, StatusNotification, MeterValues, Disconnect |
+| [routes/eventsRoute.ts](file:///c:/projects/voltflow/apps/backend/src/routes/eventsRoute.ts) | ✅ Completo | SSE `/api/events` — subscreve Redis e streama para cliente (heartbeat 25s) |
+| [server.ts](file:///c:/projects/voltflow/apps/backend/src/server.ts) | ✅ Completo | [eventsRoute](file:///c:/projects/voltflow/apps/backend/src/routes/eventsRoute.ts#4-67) registrado fora do auth guard |
+| [hooks/useRealtimeEvents.ts](file:///c:/projects/voltflow/apps/dashboard-web/src/hooks/useRealtimeEvents.ts) | ✅ Completo | Hook com reconexão exponential backoff, mapa de status por charger |
+
+## O que Falta
+
+### 1. `.env` do Backend (Arquivo Ausente)
+O backend não tem nenhum `.env`. O `DATABASE_URL` é obrigatório (sem default) — o server falhará ao iniciar sem ele.
+
+#### [NEW] [apps/backend/.env](file:///c:/projects/voltflow/apps/backend/.env)
+```env
+DATABASE_URL=postgresql://voltflow:voltflow@localhost:5432/voltflow
+REDIS_URL=redis://localhost:6379
+PORT=3000
+JWT_SECRET=CHANGE_ME_IN_PRODUCTION_AT_LEAST_32_CHARS!!
+```
+
+### 2. Script `dev` no [package.json](file:///c:/projects/voltflow/package.json) do Backend (Ausente)
+Não existe script `dev` — precisamos adicionar usando `tsx watch`.
+
+#### [MODIFY] [apps/backend/package.json](file:///c:/projects/voltflow/apps/backend/package.json)
+Adicionar script:
+```json
+"dev": "tsx watch src/server.ts"
+```
+
+### 3. Publicar eventos de `StartTransaction` / `StopTransaction` no canal `SESSIONS`
+Atualmente, o [websocket-manager.ts](file:///c:/projects/voltflow/apps/backend/src/ocpp/websocket-manager.ts) **não publica** nos eventos de início/fim de sessão. O canal `SESSIONS` existe no Redis mas nunca recebe mensagens.
+
+#### [MODIFY] [apps/backend/src/ocpp/websocket-manager.ts](file:///c:/projects/voltflow/apps/backend/src/ocpp/websocket-manager.ts)
+- `StartTransaction` → publicar `SESSION_STARTED` em `CHANNELS.SESSIONS`
+- `StopTransaction` → publicar `SESSION_STOPPED` em `CHANNELS.SESSIONS`
+
+## Verification Plan
+
+### Pré-requisito
+- Redis rodando: `docker run -p 6379:6379 redis` **ou** Redis instalado localmente.
+
+### Passos
+1. `cd apps/backend && npm run dev` — backend sobe na porta 3000.
+2. Abrir o Dashboard (`http://localhost:5173`) — ícone 🟢 "Conexão ao vivo" aparece na Overview.
+3. Simular um charger via `wscat -c ws://localhost:3000/ocpp/CP-TEST -H "Authorization: Basic ..."` enviando `BootNotification` e `StatusNotification`.
+4. Verificar que o status do CP-TEST muda em tempo real na tela do Dashboard sem reload.
+
+*************************************************************************************************
+
 # VoltFlow — Full MVP Completion Plan
 
 ## Overview

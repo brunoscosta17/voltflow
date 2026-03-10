@@ -108,15 +108,50 @@ export async function setupWebSocketManager(socket: WebSocket, req: FastifyReque
                 }
 
                 case 'StartTransaction': {
+                    const txId = Math.floor(Math.random() * 100_000);
                     responsePayload = {
-                        transactionId: Math.floor(Math.random() * 100_000),
+                        transactionId: txId,
                         idTagInfo: { status: 'Accepted' },
                     };
+                    publishEvent(CHANNELS.SESSIONS, {
+                        type: 'SESSION_STARTED',
+                        chargerId,
+                        sessionId: String(txId),
+                        timestamp: new Date().toISOString(),
+                    });
+                    // Update charger status to CHARGING
+                    publishEvent(CHANNELS.CHARGER_STATUS, {
+                        type: 'STATUS_CHANGE',
+                        chargerId,
+                        status: 'CHARGING',
+                        timestamp: new Date().toISOString(),
+                    });
                     break;
                 }
 
                 case 'StopTransaction': {
                     responsePayload = { idTagInfo: { status: 'Accepted' } };
+                    const kwhConsumed = parseFloat(payload?.meterStop ?? '0') / 1000 || 0;
+                    const duration = payload?.timestamp
+                        ? (new Date().getTime() - new Date(payload.timestamp).getTime()) / 1000
+                        : 0;
+                    // Estimate cost: kWh * R$1.99 (mock rate)
+                    const totalCost = parseFloat((kwhConsumed * 1.99).toFixed(2));
+                    publishEvent(CHANNELS.SESSIONS, {
+                        type: 'SESSION_STOPPED',
+                        chargerId,
+                        sessionId: String(payload?.transactionId ?? 0),
+                        kwhConsumed,
+                        totalCost,
+                        timestamp: new Date().toISOString(),
+                    });
+                    // Update charger status back to AVAILABLE
+                    publishEvent(CHANNELS.CHARGER_STATUS, {
+                        type: 'STATUS_CHANGE',
+                        chargerId,
+                        status: 'AVAILABLE',
+                        timestamp: new Date().toISOString(),
+                    });
                     break;
                 }
 
