@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-    ResponsiveContainer, PieChart, Pie, Cell,
-    AreaChart, Area,
+    ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area,
 } from 'recharts';
-
-// ─── Mock data ─────────────────────────────────────────────────────────────────
 
 const DAILY_REVENUE_7 = [
     { day: '04/03', gross: 430, hostNet: 387, voltflowFee: 43 },
@@ -43,7 +41,6 @@ const RECENT_TRANSACTIONS = [
     { id: 't005', driver: 'Lia F.', cp: 'CP-SP-001', gross: 99.50, net: 94.52, fee: 4.98, date: '09/03 17:08', method: 'Pix' },
 ];
 
-// Chart custom tooltip
 const ChartTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null;
     return (
@@ -59,80 +56,71 @@ const ChartTooltip = ({ active, payload, label }: any) => {
     );
 };
 
-// Custom label for the donut center
-const DonutLabel = ({ cx, cy, total }: { cx: number; cy: number; total: number }) => (
-    <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central">
-        <tspan x={cx} y={cy - 8} className="text-sm" fill="#f1f5f9" fontSize={18} fontWeight={700}>
-            R${(total / 1000).toFixed(1)}k
-        </tspan>
-        <tspan x={cx} y={cy + 14} fill="#64748b" fontSize={11}>
-            gross
-        </tspan>
-    </text>
-);
-
-const PERIODS = ['Last 7 days', 'Last 14 days'] as const;
-type Period = typeof PERIODS[number];
+type Period = 'last7' | 'last14';
 
 export const RevenuePage: React.FC = () => {
-    const [period, setPeriod] = useState<Period>('Last 14 days');
+    const { t } = useTranslation();
+    const [period, setPeriod] = useState<Period>('last14');
 
-    const data = period === 'Last 7 days' ? DAILY_REVENUE_7 : DAILY_REVENUE_14;
+    const data = period === 'last7' ? DAILY_REVENUE_7 : DAILY_REVENUE_14;
 
     const totalGross = data.reduce((s, d) => s + d.gross, 0);
     const totalHost = data.reduce((s, d) => s + d.hostNet, 0);
     const totalFee = data.reduce((s, d) => s + d.voltflowFee, 0);
 
     const splitData = [
-        { name: 'Host Revenue', value: totalHost, color: '#0ea5e9' },
-        { name: 'VoltFlow Fee', value: totalFee, color: '#a3e635' },
+        { name: t('revenue.charts.hostRevenue'), value: totalHost, color: '#0ea5e9' },
+        { name: t('revenue.charts.voltflowFee'), value: totalFee, color: '#a3e635' },
     ];
 
     const feeRate = ((totalFee / totalGross) * 100).toFixed(1);
 
     const metrics = [
         {
-            label: 'Gross Revenue', value: `R$${totalGross.toLocaleString('pt-BR')}`,
-            sub: '+12.4% vs previous period', icon: '💰', color: 'text-lime-400', ring: 'ring-lime-500/20',
+            label: t('revenue.metrics.grossRevenue'),
+            value: `R$${totalGross.toLocaleString('pt-BR')}`,
+            sub: t('revenue.metrics.growthNote'), icon: '💰', color: 'text-lime-400', ring: 'ring-lime-500/20',
         },
         {
-            label: 'Host Earnings', value: `R$${totalHost.toLocaleString('pt-BR')}`,
-            sub: `${(100 - parseFloat(feeRate)).toFixed(1)}% of gross`, icon: '🏪', color: 'text-sky-400', ring: 'ring-sky-500/20',
+            label: t('revenue.metrics.hostEarnings'),
+            value: `R$${totalHost.toLocaleString('pt-BR')}`,
+            sub: `${(100 - parseFloat(feeRate)).toFixed(1)}% ${t('revenue.metrics.ofGross')}`, icon: '🏪', color: 'text-sky-400', ring: 'ring-sky-500/20',
         },
         {
-            label: 'VoltFlow Fee', value: `R$${totalFee.toLocaleString('pt-BR')}`,
-            sub: `${feeRate}% platform commission`, icon: '⚡', color: 'text-violet-400', ring: 'ring-violet-500/20',
+            label: t('revenue.metrics.voltflowFee'),
+            value: `R$${totalFee.toLocaleString('pt-BR')}`,
+            sub: `${feeRate}% ${t('revenue.metrics.platformCommission')}`, icon: '⚡', color: 'text-violet-400', ring: 'ring-violet-500/20',
         },
     ];
 
+    const avatarColors = ['from-sky-500 to-blue-600', 'from-violet-500 to-purple-600', 'from-lime-500 to-green-600', 'from-orange-500 to-amber-600', 'from-rose-500 to-pink-600'];
+
     return (
         <div className="flex flex-col gap-8 animate-fade-in">
-            {/* Header */}
             <div className="flex items-start justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Revenue</h1>
-                    <p className="text-slate-400 text-sm mt-1">Financial overview and split breakdown for your network.</p>
+                    <h1 className="text-2xl font-bold text-white">{t('revenue.title')}</h1>
+                    <p className="text-slate-400 text-sm mt-1">{t('revenue.subtitle')}</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1 bg-slate-800/60 rounded-xl p-1">
-                        {PERIODS.map(p => (
+                        {(['last7', 'last14'] as Period[]).map(p => (
                             <button
                                 key={p}
                                 onClick={() => setPeriod(p)}
                                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${period === p ? 'bg-volt-500/20 text-volt-400 border border-volt-500/30' : 'text-slate-400 hover:text-slate-200'}`}
                             >
-                                {p}
+                                {t(`revenue.${p}`)}
                             </button>
                         ))}
                     </div>
                     <button className="btn-primary flex items-center gap-2 text-xs">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                        Export
+                        {t('revenue.export')}
                     </button>
                 </div>
             </div>
 
-            {/* Top metric cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {metrics.map(m => (
                     <div key={m.label} className={`metric-card ring-1 ${m.ring} group`}>
@@ -146,30 +134,28 @@ export const RevenuePage: React.FC = () => {
                 ))}
             </div>
 
-            {/* Revenue bar chart */}
             <div className="card-glass p-6">
                 <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-lg font-semibold text-white">Daily Revenue Breakdown</h2>
+                    <h2 className="text-lg font-semibold text-white">{t('revenue.charts.dailyBreakdown')}</h2>
                     <div className="flex items-center gap-4 text-xs text-slate-400">
-                        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-sky-500 inline-block" />Host Net</span>
-                        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-lime-400 inline-block" />VoltFlow Fee</span>
+                        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-sky-500 inline-block" />{t('revenue.charts.hostNet')}</span>
+                        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-lime-400 inline-block" />{t('revenue.charts.voltflowFee')}</span>
                     </div>
                 </div>
                 <ResponsiveContainer width="100%" height={260}>
-                    <BarChart data={data} margin={{ top: 4, right: 8, left: -16, bottom: 0 }} barSize={period === 'Last 14 days' ? 12 : 20}>
+                    <BarChart data={data} margin={{ top: 4, right: 8, left: -16, bottom: 0 }} barSize={period === 'last14' ? 12 : 20}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                         <XAxis dataKey="day" tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} />
                         <YAxis tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} />
                         <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-                        <Bar dataKey="hostNet" name="Host Net" fill="#0ea5e9" radius={[3, 3, 0, 0]} stackId="a" />
-                        <Bar dataKey="voltflowFee" name="VoltFlow Fee" fill="#a3e635" radius={[3, 3, 0, 0]} stackId="a" />
+                        <Bar dataKey="hostNet" name={t('revenue.charts.hostNet')} fill="#0ea5e9" radius={[3, 3, 0, 0]} stackId="a" />
+                        <Bar dataKey="voltflowFee" name={t('revenue.charts.voltflowFee')} fill="#a3e635" radius={[3, 3, 0, 0]} stackId="a" />
                     </BarChart>
                 </ResponsiveContainer>
             </div>
 
-            {/* Gross trend */}
             <div className="card-glass p-6">
-                <h2 className="text-lg font-semibold text-white mb-6">Gross Revenue Trend</h2>
+                <h2 className="text-lg font-semibold text-white mb-6">{t('revenue.charts.grossTrend')}</h2>
                 <ResponsiveContainer width="100%" height={160}>
                     <AreaChart data={data} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
                         <defs>
@@ -182,26 +168,19 @@ export const RevenuePage: React.FC = () => {
                         <XAxis dataKey="day" tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} />
                         <YAxis tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} />
                         <Tooltip content={<ChartTooltip />} />
-                        <Area type="monotone" dataKey="gross" stroke="#a3e635" strokeWidth={2.5} fill="url(#grossGrad)" name="Gross" dot={false} activeDot={{ r: 5, strokeWidth: 0 }} />
+                        <Area type="monotone" dataKey="gross" stroke="#a3e635" strokeWidth={2.5} fill="url(#grossGrad)" name={t('revenue.charts.gross')} dot={false} activeDot={{ r: 5, strokeWidth: 0 }} />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>
 
-            {/* Bottom row: Donut + By Charger */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                {/* Split donut */}
                 <div className="card-glass p-6">
-                    <h2 className="text-lg font-semibold text-white mb-6">Revenue Split</h2>
+                    <h2 className="text-lg font-semibold text-white mb-6">{t('revenue.charts.revenueSplit')}</h2>
                     <div className="flex items-center gap-8">
                         <div className="flex-shrink-0">
                             <ResponsiveContainer width={180} height={180}>
                                 <PieChart>
-                                    <Pie
-                                        data={splitData} cx="50%" cy="50%"
-                                        innerRadius={55} outerRadius={82}
-                                        paddingAngle={4} dataKey="value"
-                                        startAngle={90} endAngle={-270}
-                                    >
+                                    <Pie data={splitData} cx="50%" cy="50%" innerRadius={55} outerRadius={82} paddingAngle={4} dataKey="value" startAngle={90} endAngle={-270}>
                                         {splitData.map((entry, i) => (
                                             <Cell key={i} fill={entry.color} stroke="transparent" />
                                         ))}
@@ -224,9 +203,7 @@ export const RevenuePage: React.FC = () => {
                                         <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
                                             <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: d.color }} />
                                         </div>
-                                        <p className="text-sm font-bold mt-1" style={{ color: d.color }}>
-                                            R${d.value.toLocaleString('pt-BR')}
-                                        </p>
+                                        <p className="text-sm font-bold mt-1" style={{ color: d.color }}>R${d.value.toLocaleString('pt-BR')}</p>
                                     </div>
                                 );
                             })}
@@ -234,9 +211,8 @@ export const RevenuePage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Revenue by charger */}
                 <div className="card-glass p-6 flex flex-col gap-4">
-                    <h2 className="text-lg font-semibold text-white">Revenue by Charger</h2>
+                    <h2 className="text-lg font-semibold text-white">{t('revenue.charts.byCharger')}</h2>
                     <div className="flex flex-col gap-3">
                         {BY_CHARGER.map((c, i) => {
                             const maxRevenue = BY_CHARGER[0].revenue;
@@ -248,17 +224,12 @@ export const RevenuePage: React.FC = () => {
                                     <div className="flex items-center justify-between mb-1.5">
                                         <div className="flex items-center gap-2.5">
                                             <span className={`font-mono text-xs font-semibold ${textColors[i]}`}>{c.cp}</span>
-                                            <span className="text-xs text-slate-600">{c.sessions} sessions</span>
+                                            <span className="text-xs text-slate-600">{c.sessions} {t('revenue.charts.sessions')}</span>
                                         </div>
-                                        <span className={`text-sm font-bold ${textColors[i]} tabular-nums`}>
-                                            R${c.revenue.toLocaleString('pt-BR')}
-                                        </span>
+                                        <span className={`text-sm font-bold ${textColors[i]} tabular-nums`}>R${c.revenue.toLocaleString('pt-BR')}</span>
                                     </div>
                                     <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
-                                        <div
-                                            className={`h-full rounded-full ${colors[i]} opacity-80 group-hover:opacity-100 transition-all duration-700`}
-                                            style={{ width: `${pct}%` }}
-                                        />
+                                        <div className={`h-full rounded-full ${colors[i]} opacity-80 group-hover:opacity-100 transition-all duration-700`} style={{ width: `${pct}%` }} />
                                     </div>
                                 </div>
                             );
@@ -267,45 +238,46 @@ export const RevenuePage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Recent transactions table */}
             <div className="card-glass overflow-hidden">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
-                    <h2 className="text-lg font-semibold text-white">Recent Transactions</h2>
-                    <span className="text-xs text-slate-500">{RECENT_TRANSACTIONS.length} latest</span>
+                    <h2 className="text-lg font-semibold text-white">{t('revenue.transactions.title')}</h2>
+                    <span className="text-xs text-slate-500">{RECENT_TRANSACTIONS.length} {t('revenue.transactions.latest')}</span>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="border-b border-slate-800">
-                                {['Driver', 'Charger', 'Gross', 'Host Net', 'VoltFlow Fee', 'Method', 'Date'].map(h => (
+                                {[
+                                    t('revenue.transactions.driver'), t('revenue.transactions.charger'),
+                                    t('revenue.transactions.gross'), t('revenue.transactions.hostNet'),
+                                    t('revenue.transactions.fee'), t('revenue.transactions.method'),
+                                    t('revenue.transactions.date'),
+                                ].map(h => (
                                     <th key={h} className="text-left px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody>
-                            {RECENT_TRANSACTIONS.map((t, i) => {
-                                const avatarColors = ['from-sky-500 to-blue-600', 'from-violet-500 to-purple-600', 'from-lime-500 to-green-600', 'from-orange-500 to-amber-600', 'from-rose-500 to-pink-600'];
-                                return (
-                                    <tr key={t.id} className="border-b border-slate-800/50 hover:bg-white/[0.02] transition-colors">
-                                        <td className="px-6 py-3">
-                                            <div className="flex items-center gap-2.5">
-                                                <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${avatarColors[i % avatarColors.length]} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
-                                                    {t.driver[0]}
-                                                </div>
-                                                <span className="text-slate-200 font-medium whitespace-nowrap">{t.driver}</span>
+                            {RECENT_TRANSACTIONS.map((tx, i) => (
+                                <tr key={tx.id} className="border-b border-slate-800/50 hover:bg-white/[0.02] transition-colors">
+                                    <td className="px-6 py-3">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${avatarColors[i % avatarColors.length]} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
+                                                {tx.driver[0]}
                                             </div>
-                                        </td>
-                                        <td className="px-6 py-3 font-mono text-xs text-slate-400">{t.cp}</td>
-                                        <td className="px-6 py-3 text-lime-400 font-bold tabular-nums">R${t.gross.toFixed(2)}</td>
-                                        <td className="px-6 py-3 text-sky-400 font-semibold tabular-nums">R${t.net.toFixed(2)}</td>
-                                        <td className="px-6 py-3 text-violet-400 tabular-nums">R${t.fee.toFixed(2)}</td>
-                                        <td className="px-6 py-3">
-                                            <span className="text-xs px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">{t.method}</span>
-                                        </td>
-                                        <td className="px-6 py-3 text-slate-500 text-xs whitespace-nowrap">{t.date}</td>
-                                    </tr>
-                                );
-                            })}
+                                            <span className="text-slate-200 font-medium whitespace-nowrap">{tx.driver}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-3 font-mono text-xs text-slate-400">{tx.cp}</td>
+                                    <td className="px-6 py-3 text-lime-400 font-bold tabular-nums">R${tx.gross.toFixed(2)}</td>
+                                    <td className="px-6 py-3 text-sky-400 font-semibold tabular-nums">R${tx.net.toFixed(2)}</td>
+                                    <td className="px-6 py-3 text-violet-400 tabular-nums">R${tx.fee.toFixed(2)}</td>
+                                    <td className="px-6 py-3">
+                                        <span className="text-xs px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">{tx.method}</span>
+                                    </td>
+                                    <td className="px-6 py-3 text-slate-500 text-xs whitespace-nowrap">{tx.date}</td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </div>

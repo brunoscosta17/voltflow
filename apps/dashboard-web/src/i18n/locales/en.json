@@ -1,0 +1,148 @@
+{
+  "nav": {
+    "overview": "Overview",
+    "stations": "Stations",
+    "sessions": "Sessions",
+    "revenue": "Revenue",
+    "settings": "Settings"
+  },
+  "sidebar": {
+    "plan": "Pro Plan"
+  },
+  "overview": {
+    "title": "Overview",
+    "subtitle": "Welcome back. Here's your network snapshot.",
+    "liveConnection": "Live Connection",
+    "chargePoints": "Charge Points",
+    "liveStatus": "Live status",
+    "recentSessions": "Recent Sessions",
+    "vsLastMonth": "vs last month",
+    "metrics": {
+      "totalRevenue": "Total Revenue",
+      "activeSessions": "Active Sessions",
+      "chargersOnline": "Chargers Online",
+      "kwhDelivered": "kWh Delivered"
+    }
+  },
+  "stations": {
+    "title": "Stations Map",
+    "subtitle_loading": "Updating…",
+    "subtitle": "{{count}} chargers in your network",
+    "allChargers": "All Chargers",
+    "status": "Status"
+  },
+  "sessions": {
+    "title": "Sessions",
+    "subtitle": "Monitor all charging sessions in your network.",
+    "exportCsv": "Export CSV",
+    "metrics": {
+      "totalSessions": "Total Sessions",
+      "activeNow": "active now",
+      "kwhDelivered": "kWh Delivered",
+      "kwhToday": "kilowatt-hours today",
+      "avgPerSession": "Avg. per Session",
+      "avgEnergy": "average energy delivered",
+      "revenue": "Revenue",
+      "fromFiltered": "from filtered sessions"
+    },
+    "chart": {
+      "title": "Activity — Today",
+      "kwhTab": "kWh Delivered",
+      "sessionsTab": "Sessions / Hour"
+    },
+    "table": {
+      "search": "Search driver or charger…",
+      "allStatuses": "All Statuses",
+      "allChargers": "All Chargers",
+      "results": "result",
+      "results_plural": "results",
+      "driver": "Driver",
+      "charger": "Charger",
+      "connector": "Connector",
+      "start": "Start",
+      "duration": "Duration",
+      "kwh": "kWh",
+      "cost": "Cost",
+      "status": "Status",
+      "noResults": "No sessions match your filters.",
+      "showing": "Showing {{count}} of {{total}} sessions",
+      "total": "Total"
+    },
+    "status": {
+      "BILLED": "Billed",
+      "CHARGING": "Charging",
+      "STOPPED": "Stopped"
+    }
+  },
+  "revenue": {
+    "title": "Revenue",
+    "subtitle": "Financial overview and split breakdown for your network.",
+    "export": "Export",
+    "last7": "Last 7 days",
+    "last14": "Last 14 days",
+    "metrics": {
+      "grossRevenue": "Gross Revenue",
+      "growthNote": "+12.4% vs previous period",
+      "hostEarnings": "Host Earnings",
+      "ofGross": "% of gross",
+      "voltflowFee": "VoltFlow Fee",
+      "platformCommission": "platform commission"
+    },
+    "charts": {
+      "dailyBreakdown": "Daily Revenue Breakdown",
+      "hostNet": "Host Net",
+      "voltflowFee": "VoltFlow Fee",
+      "grossTrend": "Gross Revenue Trend",
+      "gross": "Gross",
+      "revenueSplit": "Revenue Split",
+      "hostRevenue": "Host Revenue",
+      "byCharger": "Revenue by Charger",
+      "sessions": "sessions"
+    },
+    "transactions": {
+      "title": "Recent Transactions",
+      "latest": "latest",
+      "driver": "Driver",
+      "charger": "Charger",
+      "gross": "Gross",
+      "hostNet": "Host Net",
+      "fee": "VoltFlow Fee",
+      "method": "Method",
+      "date": "Date"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your organization, team members, and hardware credentials.",
+    "tabs": {
+      "org": "Organization",
+      "team": "Team",
+      "chargers": "Chargers"
+    },
+    "org": {
+      "title": "Organization Settings",
+      "nameLabel": "Organization Name",
+      "splitRateLabel": "VoltFlow Platform Split Rate",
+      "splitRateHint": "This is the percentage VoltFlow deducts from each successful charging session.",
+      "save": "Save Changes",
+      "saving": "Saving…",
+      "saveSuccess": "Settings saved successfully!",
+      "saveError": "Failed to save settings"
+    },
+    "team": {
+      "title": "Team Members",
+      "invite": "Invite User"
+    },
+    "chargers": {
+      "title": "Hardware Authentication",
+      "description": "Manage the Basic Auth passwords used by your physical chargers to connect to the VoltFlow OCPP WebSocket.",
+      "passwordSet": "✅ Password Set",
+      "noPassword": "⚠️ No Password",
+      "resetPassword": "Reset Password",
+      "status": "Status"
+    }
+  },
+  "language": {
+    "label": "Language"
+  }
+}

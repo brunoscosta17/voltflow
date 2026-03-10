@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
     ResponsiveContainer, BarChart, Bar,
 } from 'recharts';
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
 const ALL_SESSIONS = [
     { id: 's001', driver: 'Carlos M.', cp: 'CP-SP-001', connector: 'CCS2', kwh: 32.4, cost: 64.48, duration: '47 min', start: '2026-03-10 09:03', status: 'BILLED' },
     { id: 's002', driver: 'Ana P.', cp: 'CP-SP-002', connector: 'Type 2', kwh: 18.2, cost: 31.85, duration: '28 min', start: '2026-03-10 09:58', status: 'BILLED' },
@@ -34,18 +34,9 @@ const SESSIONS_BY_HOUR = [
     { time: '17h', sessions: 4 }, { time: '18h', sessions: 3 }, { time: '19h', sessions: 1 },
 ];
 
-const BADGE: Record<string, { cls: string; dot: string; label: string }> = {
-    BILLED:   { cls: 'bg-lime-500/10 text-lime-400 border border-lime-500/25', dot: 'bg-lime-400', label: 'Billed' },
-    CHARGING: { cls: 'bg-sky-500/10 text-sky-400 border border-sky-500/25 animate-pulse', dot: 'bg-sky-400', label: 'Charging' },
-    STOPPED:  { cls: 'bg-slate-500/10 text-slate-400 border border-slate-500/25', dot: 'bg-slate-400', label: 'Stopped' },
-};
-
 const AVATAR_COLORS = [
-    'from-sky-500 to-blue-600',
-    'from-violet-500 to-purple-600',
-    'from-lime-500 to-green-600',
-    'from-orange-500 to-amber-600',
-    'from-rose-500 to-pink-600',
+    'from-sky-500 to-blue-600', 'from-violet-500 to-purple-600',
+    'from-lime-500 to-green-600', 'from-orange-500 to-amber-600', 'from-rose-500 to-pink-600',
 ];
 
 const ChartTooltip = ({ active, payload, label }: any) => {
@@ -63,14 +54,27 @@ const ChartTooltip = ({ active, payload, label }: any) => {
     );
 };
 
-const STATUSES = ['All', 'BILLED', 'CHARGING', 'STOPPED'];
 const CHARGERS = ['All Chargers', 'CP-SP-001', 'CP-SP-002', 'CP-SP-004', 'CP-RJ-001'];
 
 export const SessionsPage: React.FC = () => {
+    const { t } = useTranslation();
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [chargerFilter, setChargerFilter] = useState('All Chargers');
     const [activeChart, setActiveChart] = useState<'kwh' | 'sessions'>('kwh');
+
+    const STATUSES = [
+        { key: 'All', label: t('sessions.table.allStatuses') },
+        { key: 'BILLED', label: t('sessions.status.BILLED') },
+        { key: 'CHARGING', label: t('sessions.status.CHARGING') },
+        { key: 'STOPPED', label: t('sessions.status.STOPPED') },
+    ];
+
+    const BADGE: Record<string, { cls: string; dot: string; label: string }> = {
+        BILLED:   { cls: 'bg-lime-500/10 text-lime-400 border border-lime-500/25', dot: 'bg-lime-400', label: t('sessions.status.BILLED') },
+        CHARGING: { cls: 'bg-sky-500/10 text-sky-400 border border-sky-500/25 animate-pulse', dot: 'bg-sky-400', label: t('sessions.status.CHARGING') },
+        STOPPED:  { cls: 'bg-slate-500/10 text-slate-400 border border-slate-500/25', dot: 'bg-slate-400', label: t('sessions.status.STOPPED') },
+    };
 
     const filtered = useMemo(() => {
         return ALL_SESSIONS.filter(s => {
@@ -87,27 +91,31 @@ export const SessionsPage: React.FC = () => {
     const avgKwh = filtered.length ? totalKwh / filtered.length : 0;
 
     const metrics = [
-        { label: 'Total Sessions', value: filtered.length.toString(), sub: `${activeSessions} active now`, icon: '🔋', color: 'text-sky-400', bar: 'bg-sky-500' },
-        { label: 'kWh Delivered', value: `${totalKwh.toFixed(1)}`, sub: 'kilowatt-hours today', icon: '⚡', color: 'text-volt-400', bar: 'bg-yellow-400' },
-        { label: 'Avg. per Session', value: `${avgKwh.toFixed(1)} kWh`, sub: 'average energy delivered', icon: '📊', color: 'text-violet-400', bar: 'bg-violet-500' },
-        { label: 'Revenue', value: `R$${totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, sub: 'from filtered sessions', icon: '💰', color: 'text-lime-400', bar: 'bg-lime-500' },
+        { label: t('sessions.metrics.totalSessions'), value: filtered.length.toString(), sub: `${activeSessions} ${t('sessions.metrics.activeNow')}`, icon: '🔋', color: 'text-sky-400', bar: 'bg-sky-500' },
+        { label: t('sessions.metrics.kwhDelivered'), value: `${totalKwh.toFixed(1)}`, sub: t('sessions.metrics.kwhToday'), icon: '⚡', color: 'text-volt-400', bar: 'bg-yellow-400' },
+        { label: t('sessions.metrics.avgPerSession'), value: `${avgKwh.toFixed(1)} kWh`, sub: t('sessions.metrics.avgEnergy'), icon: '📊', color: 'text-violet-400', bar: 'bg-violet-500' },
+        { label: t('sessions.metrics.revenue'), value: `R$${totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, sub: t('sessions.metrics.fromFiltered'), icon: '💰', color: 'text-lime-400', bar: 'bg-lime-500' },
+    ];
+
+    const TABLE_HEADERS = [
+        t('sessions.table.driver'), t('sessions.table.charger'), t('sessions.table.connector'),
+        t('sessions.table.start'), t('sessions.table.duration'), t('sessions.table.kwh'),
+        t('sessions.table.cost'), t('sessions.table.status'),
     ];
 
     return (
         <div className="flex flex-col gap-8 animate-fade-in">
-            {/* Header */}
             <div className="flex items-start justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Sessions</h1>
-                    <p className="text-slate-400 text-sm mt-1">Monitor all charging sessions in your network.</p>
+                    <h1 className="text-2xl font-bold text-white">{t('sessions.title')}</h1>
+                    <p className="text-slate-400 text-sm mt-1">{t('sessions.subtitle')}</p>
                 </div>
                 <button className="btn-primary flex items-center gap-2 text-xs">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                    Export CSV
+                    {t('sessions.exportCsv')}
                 </button>
             </div>
 
-            {/* Metric cards */}
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
                 {metrics.map(m => (
                     <div key={m.label} className="metric-card group">
@@ -124,10 +132,9 @@ export const SessionsPage: React.FC = () => {
                 ))}
             </div>
 
-            {/* Chart area */}
             <div className="card-glass p-6">
                 <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-lg font-semibold text-white">Activity — Today</h2>
+                    <h2 className="text-lg font-semibold text-white">{t('sessions.chart.title')}</h2>
                     <div className="flex items-center gap-1 bg-slate-800/60 rounded-xl p-1">
                         {(['kwh', 'sessions'] as const).map(tab => (
                             <button
@@ -135,7 +142,7 @@ export const SessionsPage: React.FC = () => {
                                 onClick={() => setActiveChart(tab)}
                                 className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${activeChart === tab ? 'bg-volt-500/20 text-volt-400 border border-volt-500/30' : 'text-slate-400 hover:text-slate-200'}`}
                             >
-                                {tab === 'kwh' ? 'kWh Delivered' : 'Sessions / Hour'}
+                                {tab === 'kwh' ? t('sessions.chart.kwhTab') : t('sessions.chart.sessionsTab')}
                             </button>
                         ))}
                     </div>
@@ -164,33 +171,31 @@ export const SessionsPage: React.FC = () => {
                             <XAxis dataKey="time" tick={{ fill: '#475569', fontSize: 11 }} axisLine={false} tickLine={false} />
                             <YAxis tick={{ fill: '#475569', fontSize: 11 }} axisLine={false} tickLine={false} />
                             <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-                            <Bar dataKey="sessions" name="Sessions" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="sessions" name={t('sessions.chart.sessionsTab')} fill="#6366f1" radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 )}
             </div>
 
-            {/* Filters + Table */}
             <div className="card-glass overflow-hidden">
-                {/* Table header / filters */}
                 <div className="flex flex-wrap items-center gap-3 px-6 py-4 border-b border-slate-800">
                     <div className="relative flex-1 min-w-[200px]">
                         <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" /></svg>
                         <input
                             value={search}
                             onChange={e => setSearch(e.target.value)}
-                            placeholder="Search driver or charger…"
+                            placeholder={t('sessions.table.search')}
                             className="input-field pl-9 text-xs"
                         />
                     </div>
                     <div className="flex gap-2 flex-wrap">
                         {STATUSES.map(s => (
                             <button
-                                key={s}
-                                onClick={() => setStatusFilter(s)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-150 ${statusFilter === s ? 'bg-volt-500/15 text-volt-400 border-volt-500/30' : 'text-slate-400 border-slate-700 hover:border-slate-500'}`}
+                                key={s.key}
+                                onClick={() => setStatusFilter(s.key)}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-150 ${statusFilter === s.key ? 'bg-volt-500/15 text-volt-400 border-volt-500/30' : 'text-slate-400 border-slate-700 hover:border-slate-500'}`}
                             >
-                                {s === 'All' ? 'All Statuses' : BADGE[s].label}
+                                {s.label}
                             </button>
                         ))}
                     </div>
@@ -199,28 +204,30 @@ export const SessionsPage: React.FC = () => {
                         onChange={e => setChargerFilter(e.target.value)}
                         className="input-field w-auto text-xs"
                     >
-                        {CHARGERS.map(c => <option key={c} value={c}>{c}</option>)}
+                        {CHARGERS.map(c => <option key={c} value={c}>{c === 'All Chargers' ? t('sessions.table.allChargers') : c}</option>)}
                     </select>
-                    <span className="text-xs text-slate-500 ml-auto whitespace-nowrap">{filtered.length} result{filtered.length !== 1 ? 's' : ''}</span>
+                    <span className="text-xs text-slate-500 ml-auto whitespace-nowrap">
+                        {filtered.length} {filtered.length !== 1 ? t('sessions.table.results_plural') : t('sessions.table.results')}
+                    </span>
                 </div>
 
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="border-b border-slate-800">
-                                {['Driver', 'Charger', 'Connector', 'Start', 'Duration', 'kWh', 'Cost', 'Status'].map(h => (
+                                {TABLE_HEADERS.map(h => (
                                     <th key={h} className="text-left px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody>
                             {filtered.length === 0 ? (
-                                <tr><td colSpan={8} className="text-center py-16 text-slate-600 text-sm">No sessions match your filters.</td></tr>
+                                <tr><td colSpan={8} className="text-center py-16 text-slate-600 text-sm">{t('sessions.table.noResults')}</td></tr>
                             ) : filtered.map((s, i) => {
                                 const badge = BADGE[s.status] ?? BADGE.STOPPED;
                                 const avatarColor = AVATAR_COLORS[i % AVATAR_COLORS.length];
                                 return (
-                                    <tr key={s.id} className="border-b border-slate-800/50 hover:bg-white/[0.02] transition-colors duration-150 group">
+                                    <tr key={s.id} className="border-b border-slate-800/50 hover:bg-white/[0.02] transition-colors duration-150">
                                         <td className="px-6 py-3">
                                             <div className="flex items-center gap-2.5">
                                                 <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${avatarColor} flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-md`}>
@@ -255,11 +262,10 @@ export const SessionsPage: React.FC = () => {
                     </table>
                 </div>
 
-                {/* Table footer */}
                 <div className="px-6 py-3 border-t border-slate-800 flex items-center justify-between">
-                    <p className="text-xs text-slate-600">Showing {filtered.length} of {ALL_SESSIONS.length} sessions</p>
+                    <p className="text-xs text-slate-600">{t('sessions.table.showing', { count: filtered.length, total: ALL_SESSIONS.length })}</p>
                     <p className="text-xs text-slate-500">
-                        Total: <span className="text-sky-400 font-semibold">{totalKwh.toFixed(1)} kWh</span>
+                        {t('sessions.table.total')}: <span className="text-sky-400 font-semibold">{totalKwh.toFixed(1)} kWh</span>
                         {' · '}
                         <span className="text-lime-400 font-semibold">R${totalRevenue.toFixed(2)}</span>
                     </p>

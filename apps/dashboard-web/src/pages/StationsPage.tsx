@@ -1,12 +1,12 @@
 import React, { useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { useTranslation } from 'react-i18next';
 import { useStations } from '../hooks/useStations';
 import { useRealtimeEvents } from '../hooks/useRealtimeEvents';
 import type { ChargePoint } from '../services/api';
 
-// Fix Leaflet default icon path issue with Vite
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -14,7 +14,6 @@ L.Icon.Default.mergeOptions({
     shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-// Custom colored icons per status
 const makeIcon = (color: string) =>
     new L.DivIcon({
         className: '',
@@ -55,12 +54,10 @@ const MapLegend: React.FC = () => (
     </div>
 );
 
-// Sidebar list item for a charger
 const StationListItem: React.FC<{ cp: ChargePoint; onSelect: () => void }> = ({ cp, onSelect }) => (
     <button
         onClick={onSelect}
-        className="w-full text-left p-3 rounded-xl border border-slate-800 hover:border-slate-600 
-               hover:bg-white/5 transition-all duration-200"
+        className="w-full text-left p-3 rounded-xl border border-slate-800 hover:border-slate-600 hover:bg-white/5 transition-all duration-200"
     >
         <div className="flex items-center justify-between mb-1">
             <span className="font-mono text-xs text-slate-400">{cp.ocppId}</span>
@@ -71,7 +68,6 @@ const StationListItem: React.FC<{ cp: ChargePoint; onSelect: () => void }> = ({ 
     </button>
 );
 
-// Mock fallback data when API is not yet running
 const MOCK_STATIONS: ChargePoint[] = [
     { id: '1', ocppId: 'CP-SP-001', status: 'AVAILABLE', connectorType: 'CCS2', pricePerKwh: 1.99, maxPowerKw: 50, station: { id: 's1', name: 'Shopping Morumbi', lat: -23.624, lng: -46.717, address: 'Av. Roque Petroni Jr, SP' } },
     { id: '2', ocppId: 'CP-SP-002', status: 'CHARGING', connectorType: 'Type 2', pricePerKwh: 1.75, maxPowerKw: 22, station: { id: 's2', name: 'Restaurante Fasano', lat: -23.561, lng: -46.662, address: 'R. Vittorio Fasano, SP' } },
@@ -81,39 +77,35 @@ const MOCK_STATIONS: ChargePoint[] = [
 ];
 
 export const StationsPage: React.FC = () => {
+    const { t } = useTranslation();
     const { stations: apiStations, isLoading } = useStations();
     const { chargerStatuses } = useRealtimeEvents();
 
-    // Use API data if available, fall back to mocks
     const baseStations = apiStations.length > 0 ? apiStations : MOCK_STATIONS;
-
-    // Merge real-time statuses
     const stations = useMemo(() => baseStations.map(cp => ({
         ...cp,
         status: chargerStatuses[cp.ocppId] ?? cp.status,
     })), [baseStations, chargerStatuses]);
 
-    const center: [number, number] = [-23.56, -46.66]; // São Paulo
+    const center: [number, number] = [-23.56, -46.66];
 
     return (
         <div className="flex flex-col gap-6 h-full animate-fade-in">
             <div>
-                <h1 className="text-2xl font-bold text-white">Stations Map</h1>
+                <h1 className="text-2xl font-bold text-white">{t('stations.title')}</h1>
                 <p className="text-slate-400 text-sm mt-1">
-                    {isLoading ? 'Updating…' : `${stations.length} chargers in your network`}
+                    {isLoading ? t('stations.subtitle_loading') : t('stations.subtitle', { count: stations.length })}
                 </p>
             </div>
 
             <div className="flex gap-4 h-[600px]">
-                {/* Scrollable list */}
                 <div className="w-72 flex-shrink-0 card-glass overflow-y-auto p-3 space-y-2">
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-1 pb-1">All Chargers</p>
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-1 pb-1">{t('stations.allChargers')}</p>
                     {stations.map(cp => (
                         <StationListItem key={cp.id} cp={cp} onSelect={() => { }} />
                     ))}
                 </div>
 
-                {/* Map */}
                 <div className="flex-1 rounded-2xl overflow-hidden border border-slate-700 relative">
                     <MapContainer center={center} zoom={11} style={{ height: '100%', width: '100%' }} className="bg-surface-950">
                         <TileLayer
@@ -136,7 +128,7 @@ export const StationsPage: React.FC = () => {
                                                 <span className="font-semibold">R${cp.pricePerKwh}/kWh</span>
                                             </div>
                                             <div className="mt-2 text-xs font-semibold">
-                                                Status: {cp.status}
+                                                {t('stations.status')}: {cp.status}
                                             </div>
                                         </div>
                                     </Popup>

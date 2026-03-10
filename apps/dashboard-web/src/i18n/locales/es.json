@@ -1,0 +1,148 @@
+{
+  "nav": {
+    "overview": "Resumen",
+    "stations": "Estaciones",
+    "sessions": "Sesiones",
+    "revenue": "Ingresos",
+    "settings": "Configuración"
+  },
+  "sidebar": {
+    "plan": "Plan Pro"
+  },
+  "overview": {
+    "title": "Resumen",
+    "subtitle": "Bienvenido de nuevo. Aquí está el resumen de tu red.",
+    "liveConnection": "Conexión en vivo",
+    "chargePoints": "Puntos de Carga",
+    "liveStatus": "Estado en vivo",
+    "recentSessions": "Sesiones Recientes",
+    "vsLastMonth": "vs mes anterior",
+    "metrics": {
+      "totalRevenue": "Ingresos Totales",
+      "activeSessions": "Sesiones Activas",
+      "chargersOnline": "Cargadores en línea",
+      "kwhDelivered": "kWh Entregados"
+    }
+  },
+  "stations": {
+    "title": "Mapa de Estaciones",
+    "subtitle_loading": "Actualizando…",
+    "subtitle": "{{count}} cargadores en tu red",
+    "allChargers": "Todos los Cargadores",
+    "status": "Estado"
+  },
+  "sessions": {
+    "title": "Sesiones",
+    "subtitle": "Monitorea todas las sesiones de carga de tu red.",
+    "exportCsv": "Exportar CSV",
+    "metrics": {
+      "totalSessions": "Total de Sesiones",
+      "activeNow": "activa ahora",
+      "kwhDelivered": "kWh Entregados",
+      "kwhToday": "kilovatios-hora hoy",
+      "avgPerSession": "Promedio por Sesión",
+      "avgEnergy": "energía promedio entregada",
+      "revenue": "Ingresos",
+      "fromFiltered": "de las sesiones filtradas"
+    },
+    "chart": {
+      "title": "Actividad — Hoy",
+      "kwhTab": "kWh Entregados",
+      "sessionsTab": "Sesiones / Hora"
+    },
+    "table": {
+      "search": "Buscar conductor o cargador…",
+      "allStatuses": "Todos los Estados",
+      "allChargers": "Todos los Cargadores",
+      "results": "resultado",
+      "results_plural": "resultados",
+      "driver": "Conductor",
+      "charger": "Cargador",
+      "connector": "Conector",
+      "start": "Inicio",
+      "duration": "Duración",
+      "kwh": "kWh",
+      "cost": "Costo",
+      "status": "Estado",
+      "noResults": "Ninguna sesión coincide con tus filtros.",
+      "showing": "Mostrando {{count}} de {{total}} sesiones",
+      "total": "Total"
+    },
+    "status": {
+      "BILLED": "Facturada",
+      "CHARGING": "Cargando",
+      "STOPPED": "Detenida"
+    }
+  },
+  "revenue": {
+    "title": "Ingresos",
+    "subtitle": "Resumen financiero y distribución de ingresos de tu red.",
+    "export": "Exportar",
+    "last7": "Últimos 7 días",
+    "last14": "Últimos 14 días",
+    "metrics": {
+      "grossRevenue": "Ingresos Brutos",
+      "growthNote": "+12,4% vs período anterior",
+      "hostEarnings": "Ganancias del Host",
+      "ofGross": "% del bruto",
+      "voltflowFee": "Tarifa VoltFlow",
+      "platformCommission": "comisión de la plataforma"
+    },
+    "charts": {
+      "dailyBreakdown": "Desglose de Ingresos Diarios",
+      "hostNet": "Host Neto",
+      "voltflowFee": "Tarifa VoltFlow",
+      "grossTrend": "Tendencia de Ingresos Brutos",
+      "gross": "Bruto",
+      "revenueSplit": "División de Ingresos",
+      "hostRevenue": "Ingresos del Host",
+      "byCharger": "Ingresos por Cargador",
+      "sessions": "sesiones"
+    },
+    "transactions": {
+      "title": "Transacciones Recientes",
+      "latest": "más recientes",
+      "driver": "Conductor",
+      "charger": "Cargador",
+      "gross": "Bruto",
+      "hostNet": "Host Neto",
+      "fee": "Tarifa VoltFlow",
+      "method": "Método",
+      "date": "Fecha"
+    }
+  },
+  "settings": {
+    "title": "Configuración",
+    "subtitle": "Administra tu organización, miembros del equipo y credenciales de hardware.",
+    "tabs": {
+      "org": "Organización",
+      "team": "Equipo",
+      "chargers": "Cargadores"
+    },
+    "org": {
+      "title": "Configuración de la Organización",
+      "nameLabel": "Nombre de la Organización",
+      "splitRateLabel": "Tasa de División de la Plataforma VoltFlow",
+      "splitRateHint": "Este es el porcentaje que VoltFlow deduce de cada sesión de carga exitosa.",
+      "save": "Guardar Cambios",
+      "saving": "Guardando…",
+      "saveSuccess": "¡Configuración guardada con éxito!",
+      "saveError": "Error al guardar la configuración"
+    },
+    "team": {
+      "title": "Miembros del Equipo",
+      "invite": "Invitar Usuario"
+    },
+    "chargers": {
+      "title": "Autenticación de Hardware",
+      "description": "Administra las contraseñas Basic Auth usadas por tus cargadores físicos para conectarse al WebSocket OCPP de VoltFlow.",
+      "passwordSet": "✅ Contraseña Definida",
+      "noPassword": "⚠️ Sin Contraseña",
+      "resetPassword": "Restablecer Contraseña",
+      "status": "Estado"
+    }
+  },
+  "language": {
+    "label": "Idioma"
+  }
+}
