@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  # Fully isolated PostgreSQL just for VoltFlow (with TimescaleDB for IoT)
+  voltflow-db:
+    image: timescale/timescaledb:latest-pg16
+    container_name: voltflow-db
+    environment:
+      POSTGRES_USER: voltflow
+      POSTGRES_PASSWORD: voltflow_password
+      POSTGRES_DB: voltflow
+    ports:
+      # Expose on port 5433 to AVOID CONFLICT with your other project on 5432
+      - "5433:5432"
+    volumes:
+      - voltflow_pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Redis for VoltFlow WebSocket Pub/Sub
+  voltflow-redis:
+    image: redis:7-alpine
+    container_name: voltflow-redis
+    ports:
+      # We can use standard 6379 unless your other project also uses it.
+      # If there is a conflict, we'll change it later.
+      - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  voltflow_pgdata:

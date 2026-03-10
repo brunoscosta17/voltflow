@@ -1,0 +1,9 @@
+{
+    "name": "@voltflow/ocpp-types",
+    "version": "1.0.0",
+    "main": "index.js",
+    "types": "index.d.ts",
+    "devDependencies": {
+        "typescript": "^5.3.3"
+    }
+}

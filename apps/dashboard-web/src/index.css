@@ -1,0 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    @apply bg-surface-950 text-slate-100 font-sans antialiased;
+    background-image: radial-gradient(ellipse at 20% 0%, rgba(14, 165, 233, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(99, 102, 241, 0.06) 0%, transparent 50%);
+    min-height: 100vh;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0f172a;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-700 rounded-full;
+  }
+}
+
+@layer components {
+
+  /* Glass card */
+  .card-glass {
+    @apply bg-surface-900/70 backdrop-blur-md border border-slate-700/50 rounded-2xl shadow-glass;
+  }
+
+  /* Sidebar nav item */
+  .nav-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-slate-100 hover:bg-white/5 transition-all duration-200 cursor-pointer;
+  }
+
+  .nav-item.active {
+    @apply text-volt-400 bg-volt-500/10 border border-volt-500/20 shadow-glow-volt;
+  }
+
+  /* Status badge */
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full;
+  }
+
+  .status-available {
+    @apply status-badge bg-lime-500/15 text-lime-400 border border-lime-500/30;
+  }
+
+  .status-charging {
+    @apply status-badge bg-volt-500/15 text-volt-400 border border-volt-500/30;
+  }
+
+  .status-faulted {
+    @apply status-badge bg-red-500/15 text-red-400 border border-red-500/30;
+  }
+
+  .status-unavailable {
+    @apply status-badge bg-slate-500/15 text-slate-400 border border-slate-500/30;
+  }
+
+  /* Metric card */
+  .metric-card {
+    @apply card-glass p-6 flex flex-col gap-2 hover:border-volt-500/30 transition-all duration-300 hover:-translate-y-0.5;
+  }
+
+  /* Primary button */
+  .btn-primary {
+    @apply px-5 py-2.5 rounded-xl font-semibold text-sm bg-volt-gradient text-white hover:opacity-90 active:scale-95 transition-all duration-150 shadow-glow-volt;
+  }
+
+  /* Input field */
+  .input-field {
+    @apply w-full bg-surface-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-volt-500 focus:ring-1 focus:ring-volt-500/50 transition-all duration-150;
+  }
+}

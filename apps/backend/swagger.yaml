@@ -1,0 +1,110 @@
+openapi: 3.0.3
+info:
+  title: VoltFlow CPO API
+  version: 1.0.0
+  description: API for the VoltFlow Charge Point Operator SaaS Platform.
+servers:
+  - url: http://localhost:3000/api
+    description: Local development server
+paths:
+  /start-charge:
+    post:
+      summary: Starts a charging session
+      description: Issues a RemoteStartTransaction command to the target EV Charger via WebSocket.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - chargePointId
+                - connectorId
+              properties:
+                chargePointId:
+                  type: string
+                  example: "SIM-001"
+                connectorId:
+                  type: integer
+                  example: 1
+      responses:
+        '200':
+          description: Charging session initiated successfully.
+        '400':
+          description: Charger is unavailable, or Driver does not have sufficient funds/pre-auth.
+        '401':
+          description: Unauthorized request.
+  /stop-charge:
+    post:
+      summary: Stops a charging session
+      description: Issues a RemoteStopTransaction command to the target EV Charger.
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - chargePointId
+                - sessionId
+              properties:
+                chargePointId:
+                  type: string
+                  example: "SIM-001"
+                sessionId:
+                  type: string
+                  example: "d42abfc...3421"
+      responses:
+        '200':
+          description: Charging session stopped successfully.
+  /stations:
+    get:
+      summary: List available charging stations
+      description: Returns all active stations for the Driver Map app.
+      responses:
+        '200':
+          description: A list of stations with real-time hardware status.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Station'
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Station:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        lat:
+          type: number
+        lng:
+          type: number
+        chargePoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChargePoint'
+    ChargePoint:
+      type: object
+      properties:
+        id:
+          type: string
+        ocppId:
+          type: string
+        status:
+          type: string
+          enum: [AVAILABLE, PREPARING, CHARGING, FINISHING, FAULTED, UNAVAILABLE]
+        pricePerKwh:
+          type: number
