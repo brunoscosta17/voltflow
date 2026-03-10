@@ -3,9 +3,9 @@ import { useTranslation } from 'react-i18next';
 import i18n from '../i18n/index.ts';
 
 const LANGS = [
-    { code: 'pt', flag: '🇧🇷', label: 'Português' },
-    { code: 'en', flag: '🇺🇸', label: 'English' },
-    { code: 'es', flag: '🇪🇸', label: 'Español' },
+    { code: 'pt', flag: '🇧🇷', label: 'PT' },
+    { code: 'en', flag: '🇺🇸', label: 'EN' },
+    { code: 'es', flag: '🇪🇸', label: 'ES' },
 ];
 
 export const LanguageSwitcher: React.FC = () => {
@@ -38,11 +38,10 @@ export const LanguageSwitcher: React.FC = () => {
                 onClick={() => setOpen(v => !v)}
                 title="Change language"
                 aria-label="Change language"
-                className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all duration-200 ${
-                    open
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all duration-200 ${open
                         ? 'bg-volt-500/15 text-volt-400 border-volt-500/30'
                         : 'bg-surface-900/60 text-slate-400 border-slate-700 hover:border-slate-500 hover:text-slate-200'
-                }`}
+                    }`}
             >
                 {/* Globe icon */}
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,11 +63,10 @@ export const LanguageSwitcher: React.FC = () => {
                                 <button
                                     key={lang.code}
                                     onClick={() => changeLang(lang.code)}
-                                    className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-left ${
-                                        isActive
+                                    className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-left ${isActive
                                             ? 'bg-volt-500/15 text-volt-400'
                                             : 'text-slate-300 hover:bg-white/5 hover:text-white'
-                                    }`}
+                                        }`}
                                 >
                                     <span className="text-base">{lang.flag}</span>
                                     <span className="flex-1">{lang.label}</span>
