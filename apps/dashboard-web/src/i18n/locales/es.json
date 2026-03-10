@@ -29,7 +29,15 @@
     "subtitle_loading": "Actualizando…",
     "subtitle": "{{count}} cargadores en tu red",
     "allChargers": "Todos los Cargadores",
-    "status": "Estado"
+    "status": "Estado",
+    "statusLabels": {
+      "AVAILABLE": "Disponible",
+      "CHARGING": "Cargando",
+      "FAULTED": "Con Falla",
+      "UNAVAILABLE": "No Disponible",
+      "PREPARING": "Preparando",
+      "FINISHING": "Finalizando"
+    }
   },
   "sessions": {
     "title": "Sesiones",
@@ -143,6 +151,9 @@
     }
   },
   "language": {
-    "label": "Idioma"
+    "label": "Idioma",
+    "pt": "Português",
+    "en": "English",
+    "es": "Español"
   }
 }

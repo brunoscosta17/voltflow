@@ -43,16 +43,19 @@ const CPStatusBadge: React.FC<{ status: string }> = ({ status }) => {
     return <span className={colors[status] ?? 'status-badge bg-slate-700 text-slate-300'}>{status}</span>;
 };
 
-const MapLegend: React.FC = () => (
-    <div className="absolute bottom-4 left-4 z-[9000] card-glass p-3 text-xs space-y-1.5">
-        {Object.entries(STATUS_COLORS).map(([s, c]) => (
-            <div key={s} className="flex items-center gap-2">
-                <div style={{ width: 10, height: 10, borderRadius: '50%', background: c, boxShadow: `0 0 6px ${c}` }} />
-                <span className="text-slate-400">{s}</span>
-            </div>
-        ))}
-    </div>
-);
+const MapLegend: React.FC = () => {
+    const { t } = useTranslation();
+    return (
+        <div className="absolute bottom-4 left-4 z-[9000] card-glass p-3 text-xs space-y-1.5">
+            {Object.entries(STATUS_COLORS).map(([s, c]) => (
+                <div key={s} className="flex items-center gap-2">
+                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: c, boxShadow: `0 0 6px ${c}` }} />
+                    <span className="text-slate-400">{t(`stations.statusLabels.${s}`, s)}</span>
+                </div>
+            ))}
+        </div>
+    );
+};
 
 const StationListItem: React.FC<{ cp: ChargePoint; onSelect: () => void }> = ({ cp, onSelect }) => (
     <button
@@ -69,11 +72,11 @@ const StationListItem: React.FC<{ cp: ChargePoint; onSelect: () => void }> = ({ 
 );
 
 const MOCK_STATIONS: ChargePoint[] = [
-    { id: '1', ocppId: 'CP-SP-001', status: 'AVAILABLE', connectorType: 'CCS2', pricePerKwh: 1.99, maxPowerKw: 50, station: { id: 's1', name: 'Shopping Morumbi', lat: -23.624, lng: -46.717, address: 'Av. Roque Petroni Jr, SP' } },
-    { id: '2', ocppId: 'CP-SP-002', status: 'CHARGING', connectorType: 'Type 2', pricePerKwh: 1.75, maxPowerKw: 22, station: { id: 's2', name: 'Restaurante Fasano', lat: -23.561, lng: -46.662, address: 'R. Vittorio Fasano, SP' } },
-    { id: '3', ocppId: 'CP-SP-003', status: 'FAULTED', connectorType: 'CCS2', pricePerKwh: 2.10, maxPowerKw: 50, station: { id: 's3', name: 'Pátio Higienópolis', lat: -23.548, lng: -46.659, address: 'Av. Higienópolis, SP' } },
-    { id: '4', ocppId: 'CP-SP-004', status: 'AVAILABLE', connectorType: 'Type 2', pricePerKwh: 1.85, maxPowerKw: 22, station: { id: 's4', name: 'Hiper Eldorado', lat: -23.626, lng: -46.7, address: 'Av. Nações Unidas, SP' } },
-    { id: '5', ocppId: 'CP-RJ-001', status: 'UNAVAILABLE', connectorType: 'CCS2', pricePerKwh: 2.05, maxPowerKw: 50, station: { id: 's5', name: 'Shopping Barra da Tijuca', lat: -22.999, lng: -43.366, address: 'Av. das Américas, RJ' } },
+    { id: '1', ocppId: 'CP-SP-001', status: 'AVAILABLE' as const, connectorType: 'CCS2', pricePerKwh: 1.99, maxPowerKw: 50, station: { id: 's1', name: 'Shopping Morumbi', lat: -23.624, lng: -46.717, address: 'Av. Roque Petroni Jr, SP' } },
+    { id: '2', ocppId: 'CP-SP-002', status: 'CHARGING' as const, connectorType: 'Type 2', pricePerKwh: 1.75, maxPowerKw: 22, station: { id: 's2', name: 'Restaurante Fasano', lat: -23.561, lng: -46.662, address: 'R. Vittorio Fasano, SP' } },
+    { id: '3', ocppId: 'CP-SP-003', status: 'FAULTED' as const, connectorType: 'CCS2', pricePerKwh: 2.10, maxPowerKw: 50, station: { id: 's3', name: 'Pátio Higienópolis', lat: -23.548, lng: -46.659, address: 'Av. Higienópolis, SP' } },
+    { id: '4', ocppId: 'CP-SP-004', status: 'AVAILABLE' as const, connectorType: 'Type 2', pricePerKwh: 1.85, maxPowerKw: 22, station: { id: 's4', name: 'Hiper Eldorado', lat: -23.626, lng: -46.7, address: 'Av. Nações Unidas, SP' } },
+    { id: '5', ocppId: 'CP-RJ-001', status: 'UNAVAILABLE' as const, connectorType: 'CCS2', pricePerKwh: 2.05, maxPowerKw: 50, station: { id: 's5', name: 'Shopping Barra da Tijuca', lat: -22.999, lng: -43.366, address: 'Av. das Américas, RJ' } },
 ];
 
 export const StationsPage: React.FC = () => {
@@ -84,7 +87,7 @@ export const StationsPage: React.FC = () => {
     const baseStations = apiStations.length > 0 ? apiStations : MOCK_STATIONS;
     const stations = useMemo(() => baseStations.map(cp => ({
         ...cp,
-        status: chargerStatuses[cp.ocppId] ?? cp.status,
+        status: (chargerStatuses[cp.ocppId] ?? cp.status) as ChargePoint['status'],
     })), [baseStations, chargerStatuses]);
 
     const center: [number, number] = [-23.56, -46.66];

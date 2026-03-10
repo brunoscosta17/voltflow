@@ -29,7 +29,15 @@
     "subtitle_loading": "Updating…",
     "subtitle": "{{count}} chargers in your network",
     "allChargers": "All Chargers",
-    "status": "Status"
+    "status": "Status",
+    "statusLabels": {
+      "AVAILABLE": "Available",
+      "CHARGING": "Charging",
+      "FAULTED": "Faulted",
+      "UNAVAILABLE": "Unavailable",
+      "PREPARING": "Preparing",
+      "FINISHING": "Finishing"
+    }
   },
   "sessions": {
     "title": "Sessions",
@@ -143,6 +151,9 @@
     }
   },
   "language": {
-    "label": "Language"
+    "label": "Language",
+    "pt": "Português",
+    "en": "English",
+    "es": "Español"
   }
 }
