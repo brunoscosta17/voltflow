@@ -4,6 +4,8 @@ import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
     ResponsiveContainer, BarChart, Bar,
 } from 'recharts';
+import { DateRangePicker, type DateRange } from '../components/DateRangePicker';
+import { exportToCsv, today, daysAgo } from '../utils/exportCsv';
 
 const ALL_SESSIONS = [
     { id: 's001', driver: 'Carlos M.', cp: 'CP-SP-001', connector: 'CCS2', kwh: 32.4, cost: 64.48, duration: '47 min', start: '2026-03-10 09:03', status: 'BILLED' },
@@ -62,6 +64,7 @@ export const SessionsPage: React.FC = () => {
     const [statusFilter, setStatusFilter] = useState('All');
     const [chargerFilter, setChargerFilter] = useState('All Chargers');
     const [activeChart, setActiveChart] = useState<'kwh' | 'sessions'>('kwh');
+    const [dateRange, setDateRange] = useState<DateRange>({ from: daysAgo(6), to: today() });
 
     const STATUSES = [
         { key: 'All', label: t('sessions.table.allStatuses') },
@@ -78,12 +81,22 @@ export const SessionsPage: React.FC = () => {
 
     const filtered = useMemo(() => {
         return ALL_SESSIONS.filter(s => {
-            const matchSearch = !search || s.driver.toLowerCase().includes(search.toLowerCase()) || s.cp.toLowerCase().includes(search.toLowerCase());
-            const matchStatus = statusFilter === 'All' || s.status === statusFilter;
+            const sessionDate = s.start.slice(0, 10);
+            const matchDate   = sessionDate >= dateRange.from && sessionDate <= dateRange.to;
+            const matchSearch  = !search || s.driver.toLowerCase().includes(search.toLowerCase()) || s.cp.toLowerCase().includes(search.toLowerCase());
+            const matchStatus  = statusFilter === 'All' || s.status === statusFilter;
             const matchCharger = chargerFilter === 'All Chargers' || s.cp === chargerFilter;
-            return matchSearch && matchStatus && matchCharger;
+            return matchDate && matchSearch && matchStatus && matchCharger;
         });
-    }, [search, statusFilter, chargerFilter]);
+    }, [search, statusFilter, chargerFilter, dateRange]);
+
+    const handleExportCsv = () => {
+        exportToCsv(`sessions-${dateRange.from}-to-${dateRange.to}.csv`, filtered.map(s => ({
+            ID: s.id, Driver: s.driver, Charger: s.cp, Connector: s.connector,
+            Start: s.start, Duration: s.duration, kWh: s.kwh,
+            'Cost (R$)': s.cost.toFixed(2), Status: s.status,
+        })));
+    };
 
     const totalKwh = filtered.reduce((s, x) => s + x.kwh, 0);
     const totalRevenue = filtered.reduce((s, x) => s + x.cost, 0);
@@ -105,15 +118,18 @@ export const SessionsPage: React.FC = () => {
 
     return (
         <div className="flex flex-col gap-8 animate-fade-in">
-            <div className="flex items-start justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-white">{t('sessions.title')}</h1>
-                    <p className="text-slate-400 text-sm mt-1">{t('sessions.subtitle')}</p>
+            <div className="flex flex-col gap-4">
+                <div className="flex items-start justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold text-white">{t('sessions.title')}</h1>
+                        <p className="text-slate-400 text-sm mt-1">{t('sessions.subtitle')}</p>
+                    </div>
+                    <button onClick={handleExportCsv} className="btn-primary flex items-center gap-2 text-xs">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                        {t('sessions.exportCsv')} ({filtered.length})
+                    </button>
                 </div>
-                <button className="btn-primary flex items-center gap-2 text-xs">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                    {t('sessions.exportCsv')}
-                </button>
+                <DateRangePicker value={dateRange} onChange={setDateRange} />
             </div>
 
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">

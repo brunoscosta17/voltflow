@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
     ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area,
 } from 'recharts';
+import { DateRangePicker, type DateRange } from '../components/DateRangePicker';
+import { exportToCsv, today, daysAgo } from '../utils/exportCsv';
 
 const DAILY_REVENUE_7 = [
     { day: '04/03', gross: 430, hostNet: 387, voltflowFee: 43 },
@@ -56,13 +58,25 @@ const ChartTooltip = ({ active, payload, label }: any) => {
     );
 };
 
-type Period = 'last7' | 'last14';
-
 export const RevenuePage: React.FC = () => {
     const { t } = useTranslation();
-    const [period, setPeriod] = useState<Period>('last14');
+    const [dateRange, setDateRange] = useState<DateRange>({ from: daysAgo(13), to: today() });
 
-    const data = period === 'last7' ? DAILY_REVENUE_7 : DAILY_REVENUE_14;
+    // Select dataset based on range length
+    const dayCount = useMemo(() => {
+        const ms = new Date(dateRange.to).getTime() - new Date(dateRange.from).getTime();
+        return Math.round(ms / 86_400_000) + 1;
+    }, [dateRange]);
+
+    const data = dayCount <= 7 ? DAILY_REVENUE_7 : DAILY_REVENUE_14;
+
+    const handleExportCsv = () => {
+        exportToCsv(`revenue-${dateRange.from}-to-${dateRange.to}.csv`, RECENT_TRANSACTIONS.map(t => ({
+            ID: t.id, Driver: t.driver, Charger: t.cp,
+            'Gross (R$)': t.gross.toFixed(2), 'Net (R$)': t.net.toFixed(2),
+            'Fee (R$)': t.fee.toFixed(2), Date: t.date, Method: t.method,
+        })));
+    };
 
     const totalGross = data.reduce((s, d) => s + d.gross, 0);
     const totalHost = data.reduce((s, d) => s + d.hostNet, 0);
@@ -97,28 +111,18 @@ export const RevenuePage: React.FC = () => {
 
     return (
         <div className="flex flex-col gap-8 animate-fade-in">
-            <div className="flex items-start justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-white">{t('revenue.title')}</h1>
-                    <p className="text-slate-400 text-sm mt-1">{t('revenue.subtitle')}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 bg-slate-800/60 rounded-xl p-1">
-                        {(['last7', 'last14'] as Period[]).map(p => (
-                            <button
-                                key={p}
-                                onClick={() => setPeriod(p)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${period === p ? 'bg-volt-500/20 text-volt-400 border border-volt-500/30' : 'text-slate-400 hover:text-slate-200'}`}
-                            >
-                                {t(`revenue.${p}`)}
-                            </button>
-                        ))}
+            <div className="flex flex-col gap-4">
+                <div className="flex items-start justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold text-white">{t('revenue.title')}</h1>
+                        <p className="text-slate-400 text-sm mt-1">{t('revenue.subtitle')}</p>
                     </div>
-                    <button className="btn-primary flex items-center gap-2 text-xs">
+                    <button onClick={handleExportCsv} className="btn-primary flex items-center gap-2 text-xs">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                         {t('revenue.export')}
                     </button>
                 </div>
+                <DateRangePicker value={dateRange} onChange={setDateRange} />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -143,7 +147,7 @@ export const RevenuePage: React.FC = () => {
                     </div>
                 </div>
                 <ResponsiveContainer width="100%" height={260}>
-                    <BarChart data={data} margin={{ top: 4, right: 8, left: -16, bottom: 0 }} barSize={period === 'last14' ? 12 : 20}>
+                    <BarChart data={data} margin={{ top: 4, right: 8, left: -16, bottom: 0 }} barSize={dayCount <= 7 ? 20 : 12}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                         <XAxis dataKey="day" tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} />
                         <YAxis tick={{ fill: '#475569', fontSize: 10 }} axisLine={false} tickLine={false} />

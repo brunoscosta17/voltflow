@@ -47,7 +47,8 @@ export type OcppEvent =
     | { type: 'METER_VALUE'; chargerId: string; kwh: number; powerKw?: number; timestamp: string }
     | { type: 'SESSION_STARTED'; chargerId: string; sessionId: string; timestamp: string }
     | { type: 'SESSION_STOPPED'; chargerId: string; sessionId: string; kwhConsumed: number; totalCost: number; timestamp: string }
-    | { type: 'BOOT'; chargerId: string; vendor: string; model: string; timestamp: string };
+    | { type: 'BOOT'; chargerId: string; vendor: string; model: string; timestamp: string }
+    | { type: 'PIX_CONFIRMED'; txid: string; valor: string; horario: string };
 
 /** Publish a typed OCPP event to the appropriate Redis channel */
 export async function publishEvent(channel: string, event: OcppEvent): Promise<void> {

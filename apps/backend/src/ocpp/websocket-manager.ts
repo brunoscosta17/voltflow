@@ -6,6 +6,7 @@ import { ChargePointRepository } from '../repositories/ChargePointRepository';
 import { meterValueRepo } from '../repositories/MeterValueRepository';
 import { CPStatus } from '@prisma/client';
 import { validateOcppAuth } from './ocppAuth';
+import { sendFaultAlert } from '../services/AlertService';
 
 const cpRepo = new ChargePointRepository();
 
@@ -70,6 +71,13 @@ export async function setupWebSocketManager(socket: WebSocket, req: FastifyReque
                     if (Object.values(CPStatus).includes(statusStr as CPStatus)) {
                         await cpRepo.updateStatus(chargerId, statusStr as CPStatus).catch(err =>
                             console.error('[OCPP DB] Failed to update status:', err)
+                        );
+                    }
+
+                    // Send fault alert if charger entered a critical state
+                    if (statusStr === 'Faulted' || statusStr === 'Unavailable') {
+                        sendFaultAlert(chargerId, statusStr).catch(err =>
+                            console.error('[Alert] Failed to send fault alert:', err)
                         );
                     }
                     break;

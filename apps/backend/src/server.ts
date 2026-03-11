@@ -9,6 +9,7 @@ import { chargeRoutes, stationRoutes } from './routes/chargeRoutes';
 import { eventsRoute } from './routes/eventsRoute';
 import { setupWebSocketManager } from './ocpp/websocket-manager';
 import { settingsRoutes } from './routes/settingsRoutes';
+import { pixRoutes } from './routes/pixRoutes';
 import fs from 'fs';
 
 const httpsOptions = (config.server.nodeEnv === 'production' && config.tls.keyPath && config.tls.certPath)

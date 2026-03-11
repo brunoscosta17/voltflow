@@ -1,85 +1,106 @@
-# VoltFlow — All 4 Remaining Tasks Complete
+# VoltFlow — Post-MVP Features Walkthrough
 
-## Task 1 — Stale [implementation_plan.md](file:///c:/projects/voltflow/implementation_plan.md) ✅
+## Feature 5 — Dashboard Analytics & CSV Export ✅
 
-[implementation_plan.md](file:///c:/projects/voltflow/implementation_plan.md) replaced with a clean English MVP status summary — architecture diagram, all 12 phases, and local setup commands.
+### New files
+- [exportCsv.ts](file:///c:/projects/voltflow/apps/dashboard-web/src/utils/exportCsv.ts) — CSV conversion + download trigger
+- [DateRangePicker.tsx](file:///c:/projects/voltflow/apps/dashboard-web/src/components/DateRangePicker.tsx) — preset buttons (Hoje / 7d / 30d / Este mês) + custom date inputs
+
+### Changes
+- **SessionsPage**: date filter wired into `useMemo`, Export CSV button now calls [exportToCsv()](file:///c:/projects/voltflow/apps/dashboard-web/src/utils/exportCsv.ts#1-35) and shows row count
+- **RevenuePage**: replaces the old last7/last14 toggler with [DateRangePicker](file:///c:/projects/voltflow/apps/dashboard-web/src/components/DateRangePicker.tsx#21-63), Export button downloads transactions CSV
 
 ---
 
-## Task 2 — Real E2E Tests ✅
+## Feature 3 — Fault Alerts via E-mail ✅
 
-[e2e.test.ts](file:///c:/projects/voltflow/packages/charger-simulator/src/__tests__/e2e.test.ts) replaced the `expect(true).toBe(true)` placeholder with a full **OCPP 1.6 lifecycle simulation**:
+### New file
+- [AlertService.ts](file:///c:/projects/voltflow/apps/backend/src/services/AlertService.ts) — sends branded HTML e-mail via Resend API with 10-min debounce per charger
 
-| Test | Action |
-|---|---|
-| 1 | `BootNotification` → asserts `Accepted` |
-| 2 | `StatusNotification(Available)` → asserts `{}` |
-| 3 | `Heartbeat` → asserts `currentTime` present |
-| 4 | `StartTransaction` → asserts numeric `transactionId` |
-| 5 | `StatusNotification(Charging)` → asserts `{}` |
-| 6 | `MeterValues` ×2 → asserts acknowledged |
-| 7 | `StopTransaction` → asserts `Accepted` |
-| 8 | `StatusNotification(Available)` → asserts `{}` |
+### Changes
+- [websocket-manager.ts](file:///c:/projects/voltflow/apps/backend/src/ocpp/websocket-manager.ts) — calls [sendFaultAlert()](file:///c:/projects/voltflow/apps/backend/src/services/AlertService.ts#34-97) in `StatusNotification` handler when status = `Faulted` or `Unavailable`
 
-**Guarded by `VOLTFLOW_E2E=true`** — skipped in standard CI, enabled in the full-stack E2E job.
-Also includes 2 always-running unit smoke tests (no backend required).
-
+### To enable
 ```bash
-# Run unit tests only
-npm test
-
-# Run full E2E (requires backend + Redis + DB)
-VOLTFLOW_E2E=true npm run e2e
+# apps/backend/.env
+RESEND_API_KEY=re_...
+ALERT_EMAIL_FROM=alerts@yourdomain.com
+ALERT_EMAIL_TO=ops@yourcompany.com
+DASHBOARD_URL=https://dashboard.voltflow.io
 ```
 
 ---
 
-## Task 3 — Mobile App API Polish ✅
+## Feature 4 — Full Pix Payment Flow ✅
 
-### [services/api.ts](file:///c:/projects/voltflow/apps/driver-mobile/services/api.ts)
-- Fully typed with [ApiStation](file:///c:/projects/voltflow/apps/driver-mobile/services/api.ts#15-23), [ApiChargePoint](file:///c:/projects/voltflow/apps/driver-mobile/services/api.ts#6-14), [SessionResponse](file:///c:/projects/voltflow/apps/driver-mobile/services/api.ts#24-31) interfaces
-- Clean error messages: `[status] statusText — body`
+### New files
+- [PixService.ts](file:///c:/projects/voltflow/apps/backend/src/services/PixService.ts) — Efi Pay OAuth2 (token caching), [createPixCharge()](file:///c:/projects/voltflow/apps/backend/src/services/PixService.ts#70-117), [getPixChargeStatus()](file:///c:/projects/voltflow/apps/backend/src/services/PixService.ts#118-133), [parsePixWebhook()](file:///c:/projects/voltflow/apps/backend/src/services/PixService.ts#134-148). Falls back to realistic QR mock when `EFI_CLIENT_ID` is not set.
+- [pixRoutes.ts](file:///c:/projects/voltflow/apps/backend/src/routes/pixRoutes.ts) — 3 endpoints:
+  - `POST /api/pix/charge` — creates QR code
+  - `GET /api/pix/status/:txid` — mobile polls this every 3s
+  - `POST /api/pix/webhook` — Efi callback → publishes `PIX_CONFIRMED` to Redis
 
-### [app/index.tsx](file:///c:/projects/voltflow/apps/driver-mobile/app/index.tsx)
-- **Haversine distance**: calculates real km from driver location (São Paulo centre) to each station — sorted nearest first
-- **Pull-to-refresh**: `RefreshControl` on the charger list
-- **Error screen**: replaces `alert()` crash — shows ⚠️ message with "Tentar novamente" button
-- **Live kWh counter**: polls every 10s during active session, shows real-time estimated cost
-- **FINISHING status**: added to `STATUS_CONFIG`
-- **Search clear button**: ✕ appears when search is active
+### Changes
+- [server.ts](file:///c:/projects/voltflow/apps/backend/src/server.ts) — registers [pixRoutes](file:///c:/projects/voltflow/apps/backend/src/routes/pixRoutes.ts#11-80)
+- [redisClient.ts](file:///c:/projects/voltflow/apps/backend/src/redis/redisClient.ts) — added `PIX_CONFIRMED` to [OcppEvent](file:///c:/projects/voltflow/apps/dashboard-web/src/hooks/useRealtimeEvents.ts#3-9) union
+
+### To enable
+```bash
+# apps/backend/.env
+EFI_CLIENT_ID=...
+EFI_CLIENT_SECRET=...
+EFI_PIX_KEY=your-pix-key
+EFI_SANDBOX=true
+```
 
 ---
 
-## Task 4 — CI/CD Pipeline ✅
+## Feature 1 — Real Authentication (Clerk) ✅
 
-### GitHub Actions — [ci.yml](file:///c:/projects/voltflow/.github/workflows/ci.yml)
+### New file
+- [ClerkAuthProvider.tsx](file:///c:/projects/voltflow/apps/dashboard-web/src/components/ClerkAuthProvider.tsx) — wraps app in `<ClerkProvider>` with `<SignedIn>/<SignedOut>` guards. Exports [AuthUserButton](file:///c:/projects/voltflow/apps/dashboard-web/src/components/ClerkAuthProvider.tsx#32-68) (Clerk [UserButton](file:///c:/projects/voltflow/apps/dashboard-web/src/components/ClerkAuthProvider.tsx#32-68) or static avatar fallback).
 
-4 jobs:
+### Changes
+- [authMiddleware.ts](file:///c:/projects/voltflow/apps/backend/src/middleware/authMiddleware.ts) — dual-mode authenticate: tries Clerk token first (when `CLERK_SECRET_KEY` is set), falls back to internal JWT. Zero disruption to dev/demo.
 
-| Job | When | What |
-|---|---|---|
-| `backend-test` | Every push/PR | `npm test` in `apps/backend` |
-| `build-web` | Every push/PR | `npm run build` in `apps/dashboard-web` |
-| `simulator-test` | Every push/PR | Unit tests in `charger-simulator` (E2E skipped) |
-| `e2e` | Push to main / manual | Full stack: TimescaleDB + Redis services → migrate → start backend → run OCPP E2E |
-
-### Production Docker Compose — [docker-compose.prod.yml](file:///c:/projects/voltflow/docker-compose.prod.yml)
-- 4 services: `voltflow-db`, `voltflow-redis`, `voltflow-backend`, `voltflow-web`
-- DB and Redis **not exposed externally** — internal network only
-- Healthchecks with `depends_on: condition: service_healthy`
-- Secrets from environment variables (no hardcoded values)
-
-### Dockerfiles
-- **[apps/backend/Dockerfile](file:///c:/projects/voltflow/apps/backend/Dockerfile)**: Multi-stage — builder compiles TypeScript; production image runs as non-root `voltflow` user
-- **[apps/dashboard-web/Dockerfile](file:///c:/projects/voltflow/apps/dashboard-web/Dockerfile)**: Multi-stage — Vite builds `dist/`; nginx serves with SPA fallback, gzip, and security headers
-
-### Production deployment
+### To enable (dashboard)
 ```bash
-cp .env.prod.example .env.prod
-# Fill in POSTGRES_PASSWORD, JWT_SECRET, VITE_API_URL
-
-docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
-
-# Run migrations once
-docker exec voltflow-backend npx prisma migrate deploy
+npm install @clerk/clerk-react   # apps/dashboard-web
+# apps/dashboard-web/.env
+VITE_CLERK_PUBLISHABLE_KEY=pk_...
 ```
+
+Wrap `<App />` in [main.tsx](file:///c:/projects/voltflow/apps/dashboard-web/src/main.tsx):
+```tsx
+import { ClerkAuthProvider } from './components/ClerkAuthProvider';
+<ClerkAuthProvider><App /></ClerkAuthProvider>
+```
+
+### To enable (backend)
+```bash
+# apps/backend/.env
+CLERK_SECRET_KEY=sk_...
+```
+
+---
+
+## Feature 2 — Mobile App Publishing (EAS Build) ✅
+
+### New file
+- [eas.json](file:///c:/projects/voltflow/apps/driver-mobile/eas.json) — 3 profiles: `development`, `preview` (internal APK), `production` (auto version increment)
+
+### Build & publish commands
+```bash
+npm install -g eas-cli
+eas login
+
+# Build for both stores (production profile)
+eas build --platform all --profile production
+
+# Submit after successful build
+eas submit --platform ios      # Apple Developer account required
+eas submit --platform android  # Google Play Console account required
+```
+
+> [!IMPORTANT]
+> Update the `bundleIdentifier` (iOS) and `package` (Android) in [app.json](file:///c:/projects/voltflow/apps/driver-mobile/app.json) before your first production build, and fill in your Apple/Google credentials in `eas.json submit.production`.

@@ -82,8 +82,12 @@
 - [x] TimescaleDB for MeterValues (hypertable migration)
 - [x] Automated E2E Tests (`e2e.test.ts` + `SessionService.test.ts`)
 
-## Remaining / Open Items
-- [ ] **E2E test coverage**: `e2e.test.ts` exists in `charger-simulator/src/__tests__/` but needs to be verified it actually runs against the backend
-- [ ] **`implementation_plan.md` in root is stale** — it still documents Phase 9 as if incomplete; should be replaced with a current status overview
-- [ ] **Driver Mobile App API integration**: `driver_app_plan.md` describes real API integration still pending (currently uses mock data in the mobile app)
-- [ ] **Production deployment**: No CI/CD pipeline or production Docker Compose with secrets management
+## Phase 13: Polish & Completion
+- [x] Fix stale `implementation_plan.md` in project root (English MVP status)
+- [x] Real E2E tests — full OCPP lifecycle simulation (`e2e.test.ts`)
+- [x] Driver Mobile App API integration — haversine distance, pull-to-refresh, error screen, kWh polling
+- [x] Production CI/CD — GitHub Actions (4 jobs) + `docker-compose.prod.yml` + Dockerfiles + `.env.prod.example`
+- [x] Settings Page functionality — mock data fallback, Invite User modal, Reset Password modal, Organization form
+
+## 🏁 MVP Complete — No open items remaining
+
